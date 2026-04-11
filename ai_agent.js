@@ -1,4 +1,5 @@
-// ============================================================    
+
+// ============================================================
 //  ICF-SL  ai_agent.js
 //  • Analysis dashboard — fetches from ICF-SL Server via GAS
 //  • AI Agent modal (GAS-backed Claude chat)
@@ -476,7 +477,7 @@
 
         // Aggregate
         let tp=0,ti=0,tb=0,tg=0,tbi=0,tgi=0,tr=0,trem=0;
-        const byDist={},bySubmitter={};
+        const byDist={};
         const cls={b:[0,0,0,0,0],g:[0,0,0,0,0],bi:[0,0,0,0,0],gi:[0,0,0,0,0]};
 
         all.forEach(r=>{
@@ -487,9 +488,8 @@
             const d=r.district||'Unknown';
             if(!byDist[d])byDist[d]={n:0,p:0,i:0,b:0,g:0,bi:0,gi:0};
             byDist[d].n++;byDist[d].p+=vp;byDist[d].i+=vi;byDist[d].b+=vb;byDist[d].g+=vg;byDist[d].bi+=vbi;byDist[d].gi+=vgi;
-            const sub=r.submitted_by||'Unknown';
-            if(!bySubmitter[sub])bySubmitter[sub]={n:0,p:0,i:0};
-            bySubmitter[sub].n++;bySubmitter[sub].p+=vp;bySubmitter[sub].i+=vi;
+
+
             for(let c=1;c<=5;c++){
                 cls.b[c-1]+=+r['c'+c+'_boys']||0;cls.g[c-1]+=+r['c'+c+'_girls']||0;
                 cls.bi[c-1]+=+r['c'+c+'_boys_itn']||0;cls.gi[c-1]+=+r['c'+c+'_girls_itn']||0;
@@ -563,14 +563,7 @@
           </div>
         </div>`:''}
 
-        <!-- Row 4: By submitter -->
-        ${Object.keys(bySubmitter).length>1?`
-        <div class="an-section">
-          <div class="an-section-hdr"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>BY DISTRIBUTOR</div>
-          <div class="an-section-body">
-            <div class="an-chart-card"><div class="an-chart-label">Schools Submitted per Distributor</div><canvas id="anSubmitterBar"></canvas></div>
-          </div>
-        </div>`:''}
+        <!-- BY DISTRIBUTOR section removed -->
 
         <!-- School table -->
         <div class="an-section">
@@ -638,12 +631,7 @@
             mkChart('anDistGender',{type:'bar',data:{labels:distL,datasets:[{label:'Boys',data:distBoysCov,backgroundColor:'rgba(0,64,128,.75)',borderColor:'#004080',borderWidth:2,borderRadius:4},{label:'Girls',data:distGirlsCov,backgroundColor:'rgba(233,30,140,.7)',borderColor:'#e91e8c',borderWidth:2,borderRadius:4}]},options:{...chartOpts({indexAxis:'y',scales:{x:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%',font:CF.font},grid:{color:'rgba(0,0,0,.05)'}},y:{ticks:{font:CF.font},grid:{display:false}}}})}});
         }
 
-        // 9. By submitter bar
-        if(Object.keys(bySubmitter).length>1){
-            const subs=Object.entries(bySubmitter).sort((a,b)=>b[1].n-a[1].n).slice(0,10);
-            const subLabels=subs.map(s=>s[0]),subVals=subs.map(s=>s[1].n),subCov=subs.map(s=>s[1].p>0?Math.round((s[1].i/s[1].p)*100):0);
-            mkChart('anSubmitterBar',{type:'bar',data:{labels:subLabels,datasets:[{label:'Schools',data:subVals,backgroundColor:'rgba(0,64,128,.7)',borderColor:'#004080',borderWidth:2,borderRadius:5,yAxisID:'y'},{label:'Coverage %',data:subCov,backgroundColor:'rgba(40,167,69,.6)',borderColor:'#28a745',borderWidth:2,borderRadius:5,type:'line',yAxisID:'y1'}]},options:{...chartOpts({scales:{y:{beginAtZero:true,ticks:{font:CF.font},grid:{color:'rgba(0,0,0,.05)'},title:{display:true,text:'Schools',font:CF.font}},y1:{beginAtZero:true,max:100,position:'right',ticks:{callback:v=>v+'%',font:CF.font},grid:{display:false},title:{display:true,text:'Coverage',font:CF.font}},x:{ticks:{font:CF.font},grid:{display:false}}}})}});
-        }
+        // By distributor chart removed
     };
 
     // ════════════════════════════════════════════════════════
@@ -727,7 +715,7 @@
         if (!districts.length) {
             body.innerHTML = `<div class="an-no-data">
               <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
-              <div>No location data loaded. Ensure cascading_data1.csv is present.</div>
+              <div>No location data loaded. Ensure cascading_data.csv is present.</div>
             </div>`;
             return;
         }
@@ -779,7 +767,7 @@
                   </tr>`).join('')}</tbody>
                 </table>
               </div>
-              <div style="padding:8px 14px;font-size:10px;color:#607080;border-top:1px solid #fde8e8;">Fix these duplicates in cascading_data1.csv to ensure accurate target counts.</div>
+              <div style="padding:8px 14px;font-size:10px;color:#607080;border-top:1px solid #fde8e8;">Fix these duplicates in cascading_data.csv to ensure accurate target counts.</div>
             </div>` : '';
 
         // ── Build HTML ───────────────────────────────────────────
@@ -824,6 +812,8 @@
         .tg-prog-bar{background:#e4eaf2;border-radius:4px;height:8px;flex:1;overflow:hidden;min-width:60px;}
         .tg-prog-fill{height:100%;border-radius:4px;}
         .tg-school-chips{display:flex;flex-wrap:wrap;gap:3px;max-width:340px;}
+    .tg-chip.new-school{background:#fff3cd;border:1px solid #ffc107;color:#856404;font-style:italic;}
+    .tg-chip.new-school::before{content:'★ ';}
         .tg-chip{display:inline-block;padding:2px 7px;border-radius:12px;font-size:10px;font-weight:600;white-space:nowrap;}
         .tg-chip.done{background:#e8f5e9;color:#28a745;border:1px solid #b2dfcc;}
         .tg-chip.pend{background:#fff8e1;color:#b8860b;border:1px solid #ffe082;}
@@ -900,10 +890,31 @@
                 const chipsId = `chips-${di}-${ci}`;
 
                 // Show first 5 schools as chips, expandable
+                // Get new schools added in field
+                const _newSchools = (window.getNewSchoolsAdded ? window.getNewSchoolsAdded() : [])
+                    .map(ns => (ns.key||'').toLowerCase());
+
                 const chips = schs.map(s => {
-                    const done  = submitted.has(s.key);
-                    const label = s.name.length > 22 ? s.name.substring(0,20)+'…' : s.name;
-                    return `<span class="tg-chip ${done?'done':'pend'}" title="${s.name} · ${s.community}">${done?'✓ ':''}${label}</span>`;
+                    const done     = submitted.has(s.key);
+                    const isNew    = _newSchools.includes((s.key||'').toLowerCase());
+                    const label    = s.name.length > 22 ? s.name.substring(0,20)+'…' : s.name;
+                    const cls      = done ? 'done' : isNew ? 'pend new-school' : 'pend';
+                    const tooltip  = s.name + ' · ' + s.community + (isNew ? ' (NEW — added in field)' : '');
+                    return `<span class="tg-chip ${cls}" title="${tooltip}">${done?'✓ ':''}${label}</span>`;
+                }).join('');
+
+                // Also add new schools not in CSV target but submitted/added
+                const newInField = _newSchools.filter(k => {
+                    const parts = k.split('|');
+                    const d2 = parts[0]||'', c2 = parts[1]||'', p2 = parts[2]||'';
+                    return d2.toLowerCase() === district.toLowerCase() &&
+                           c2.toLowerCase() === chiefdom.toLowerCase();
+                }).map(k => {
+                    const done2 = submitted.has(k);
+                    const parts = k.split('|');
+                    const nm    = parts[4] || k;
+                    const lbl   = nm.length > 22 ? nm.substring(0,20)+'…' : nm;
+                    return `<span class="tg-chip pend new-school" title="${nm} (NEW — added in field)">★ ${lbl}</span>`;
                 }).join('');
 
                 html += `
@@ -921,7 +932,7 @@
                         </td>
                         <td>
                           <div class="tg-school-chips" id="${chipsId}">
-                            ${chips}
+                            ${chips}${newInField}
                           </div>
                         </td>
                       </tr>`;
@@ -1048,6 +1059,31 @@
         if(el)el.innerHTML=statsHTML(c);
         setStatus(c==='?'?'err':'ok',c==='?'?'GAS unreachable':'GAS connected · '+c+' records');
     };
+
+    // ── Auto-refresh stats strip every 30 seconds ─────────────
+    let _statsTimer = null;
+    function startStatsAutoRefresh(){
+        if(_statsTimer) clearInterval(_statsTimer);
+        _statsTimer = setInterval(async ()=>{
+            // Only refresh if page is visible and user is online
+            if(document.hidden || !navigator.onLine) return;
+            const c = await fetchCount();
+            const el = document.getElementById('icfAiStats');
+            if(el) el.innerHTML = statsHTML(c);
+        }, 30000); // every 30 seconds
+    }
+
+    // Start immediately when AI agent loads
+    window.icfAiRefreshStats().then(()=>{ startStatsAutoRefresh(); }).catch(()=>{ startStatsAutoRefresh(); });
+
+    // Also refresh stats immediately after every submission
+    const _origMarkSubmitted = window.markSchoolSubmitted;
+    if(typeof _origMarkSubmitted === 'function'){
+        window.markSchoolSubmitted = function(data){
+            _origMarkSubmitted(data);
+            setTimeout(()=>window.icfAiRefreshStats(), 1500); // slight delay to let GAS save
+        };
+    }
 
     function setStatus(t,m){const el=document.getElementById('icfGasStatus');if(el)el.innerHTML=`<div class="icf-pill ${t}"><div class="icf-dot"></div>${m}</div>`;}
 
