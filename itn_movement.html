@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html>   
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -31,8 +31,8 @@ body{overflow-x:hidden;}
 /* LOGIN */
 #scr-login{background:linear-gradient(155deg,var(--navy-d) 0%,var(--navy) 60%,#005a9e 100%);align-items:center;justify-content:center;padding:24px 16px;}
 .login-card{background:#fff;border-radius:20px;padding:28px 24px;width:100%;max-width:380px;box-shadow:0 20px 50px rgba(0,0,0,.35);border-top:5px solid var(--gold);}
-.login-logo{margin:0 auto 14px;display:flex;align-items:center;justify-content:center;}
-.login-logo img{width:80px;height:80px;object-fit:contain;border-radius:10px;}
+.login-logo{width:64px;height:64px;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;}
+.login-logo img{width:100%;height:100%;object-fit:cover;}
 .login-title{font-size:18px;font-weight:700;color:var(--navy);text-align:center;letter-spacing:.5px;}
 .login-sub{font-size:11px;color:var(--text-s);text-align:center;letter-spacing:.5px;text-transform:uppercase;margin-bottom:16px;}
 .login-divider{width:40px;height:3px;background:var(--gold);margin:8px auto 14px;}
@@ -159,8 +159,8 @@ body{overflow-x:hidden;}
 /* RECEIPT */
 .receipt-card{background:#fff;border-radius:16px;border:3px solid var(--gold);box-shadow:0 8px 30px rgba(0,0,0,.12);overflow:hidden;margin-bottom:14px;}
 .receipt-header{background:linear-gradient(135deg,var(--navy-d),var(--navy));padding:16px 20px;text-align:center;}
-.receipt-header-logo{margin:0 auto 10px;display:flex;align-items:center;justify-content:center;}
-.receipt-header-logo img{width:54px;height:54px;object-fit:contain;border-radius:8px;}
+.receipt-header-logo{width:48px;height:48px;margin:0 auto 10px;}
+.receipt-header-logo img{width:100%;height:100%;object-fit:cover;}
 .receipt-header h2{font-size:16px;font-weight:700;color:#fff;letter-spacing:.8px;}
 .receipt-header p{font-size:10px;color:rgba(255,255,255,.6);margin-top:2px;letter-spacing:.5px;text-transform:uppercase;}
 .receipt-qr-section{padding:18px;text-align:center;border-bottom:2px dashed var(--border);}
@@ -230,28 +230,10 @@ body{overflow-x:hidden;}
     <div class="login-title">ICF‑SL ITN MOVEMENT</div>
     <div class="login-divider"></div>
     <div class="login-sub">DMS to PHU Dispatch Tracking</div>
-    <div class="fg">
-      <label class="fl">Username</label>
-      <div style="position:relative;">
-        <input class="fi" type="password" id="loginUser" placeholder="Enter your username" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false"
-          onkeydown="if(event.key==='Enter')doLogin()"
-          style="padding-right:42px;">
-        <button type="button" onclick="togglePwdVis('loginUser','eyeLogin')"
-          style="position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:4px;color:var(--text-s);display:flex;align-items:center;">
-          <svg id="eyeLogin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-          </svg>
-        </button>
-      </div>
-    </div>
-    <button class="btn btn-navy btn-full" onclick="doLogin()" style="margin-bottom:10px;">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>
-      SIGN IN
-    </button>
-    <div class="login-or">or</div>
-    <button class="btn btn-outline btn-full" onclick="toggleLoginScanner()" style="margin-top:8px;">
+    <p style="font-size:12px;color:var(--text-s);text-align:center;margin-bottom:16px;">Scan your SBD staff QR ID card to sign in</p>
+    <button class="btn btn-navy btn-full" onclick="toggleLoginScanner()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3M17 14v3M14 17h3"/></svg>
-      SCAN QR CODE
+      SCAN QR ID CARD
     </button>
     <div id="loginScannerWrap" style="display:none;">
       <div class="qr-scan-box">
@@ -261,7 +243,7 @@ body{overflow-x:hidden;}
     </div>
     <div class="login-err" id="loginErr"></div>
     <div style="text-align:center;margin-top:12px;font-size:10px;color:var(--text-s);">
-      <span id="loginStatus">Loading users…</span>
+      <span id="loginStatus">Scan your SBD QR ID card</span>
     </div>
   </div>
 </div>
@@ -276,8 +258,8 @@ body{overflow-x:hidden;}
     <button class="logout-pill" onclick="doLogout()">LOGOUT</button>
   </div>
 
-  <!-- DMS tabs -->
-  <div id="dmsTabBar" class="tab-bar" style="display:none;">
+  <!-- Single tab bar for all users -->
+  <div id="mainTabBar" class="tab-bar" style="display:none;">
     <button class="tab-btn active" id="tab-dashboard" onclick="switchTab('dashboard')">
       <svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>DASHBOARD
     </button>
@@ -289,16 +271,6 @@ body{overflow-x:hidden;}
     </button>
     <button class="tab-btn" id="tab-pending" onclick="switchTab('pending')">
       <svg viewBox="0 0 24 24"><path d="M21 2v6h-6M3 12a9 9 0 0115.36-6.36L21 8M3 22v-6h6M21 12a9 9 0 01-15.36 6.36L3 16"/></svg>SYNC
-    </button>
-  </div>
-
-  <!-- Conveyor tabs -->
-  <div id="drvTabBar" class="tab-bar" style="display:none;">
-    <button class="tab-btn active" id="tab-myqr" onclick="switchTab('myqr')">
-      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3M17 14v3M14 17h3"/></svg>MY QR ID
-    </button>
-    <button class="tab-btn" id="tab-mytrips" onclick="switchTab('mytrips')">
-      <svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>MY TRIPS
     </button>
   </div>
 
@@ -337,7 +309,7 @@ body{overflow-x:hidden;}
             <div class="fg">
               <label class="fl">District</label>
               <input class="fi" type="text" id="ds-district" readonly
-                style="background:var(--gray);color:var(--navy);font-weight:600;cursor:not-allowed;">
+                style="background:var(--gray);color:var(--navy);font-weight:700;cursor:not-allowed;">
             </div>
             <div class="fg">
               <label class="fl">Chiefdom <span style="color:var(--red)">*</span></label>
@@ -348,19 +320,10 @@ body{overflow-x:hidden;}
             </div>
             <div class="fg">
               <label class="fl">Health Facility / PHU <span style="color:var(--red)">*</span></label>
-              <select class="fsel" id="ds-phu" disabled onchange="checkPHUDuplicate()">
+              <select class="fsel" id="ds-phu" disabled>
                 <option value="">Select PHU...</option>
               </select>
               <div class="cascade-cnt" id="cnt-phu"></div>
-            </div>
-            <!-- Duplicate PHU warning -->
-            <div id="phuDupWarn" style="display:none;background:var(--red-l);border:2px solid var(--red);border-radius:10px;padding:12px 14px;margin-top:4px;">
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" width="18" height="18" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                <span style="font-size:12px;font-weight:700;color:var(--red);letter-spacing:.5px;text-transform:uppercase;">ALREADY DISPATCHED</span>
-              </div>
-              <div style="font-size:11px;color:var(--red);margin-bottom:8px;">This PHU has already received a dispatch. Only one dispatch is allowed per PHU.</div>
-              <div id="phuDupCard" style="background:#fff;border-radius:8px;padding:10px 12px;"></div>
             </div>
           </div>
         </div>
@@ -370,23 +333,13 @@ body{overflow-x:hidden;}
             <span class="card-title">ITN QUANTITIES</span>
           </div>
           <div class="card-body">
-            <div class="frow">
-              <div class="fg">
-                <label class="fl">IG2 ITNs</label>
-                <input class="fi" type="number" id="qty-ig2" min="0" value="0" oninput="updateTotal()">
-              </div>
-              <div class="fg">
-                <label class="fl">PBO ITNs</label>
-                <input class="fi" type="number" id="qty-pbo" min="0" value="0" oninput="updateTotal()">
-              </div>
-            </div>
-            <div class="qty-total-bar">
-              <span>TOTAL ITNs</span>
-              <strong id="qtyTotal">0</strong>
+            <div class="fg">
+              <label class="fl">DUAL-AI ITNs <span style="color:var(--red)">*</span></label>
+              <input class="fi" type="number" id="qty-dualai" min="0" value="0" placeholder="Enter quantity">
             </div>
             <div style="display:flex;justify-content:flex-end;margin-top:14px;">
-              <button class="btn btn-navy" id="btnNextStep2" onclick="goStep2()">
-                NEXT — VERIFY CONVEYOR
+              <button class="btn btn-navy" onclick="goStep2()">
+                NEXT — VEHICLE DETAILS
                 <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
               </button>
             </div>
@@ -399,33 +352,11 @@ body{overflow-x:hidden;}
         <div class="card">
           <div class="card-hdr navy">
             <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
-            <span class="card-title">STEP 2 — VERIFY CONVEYOR</span>
+            <span class="card-title">STEP 2 — VEHICLE DETAILS</span>
           </div>
           <div class="card-body">
-            <p style="font-size:11px;color:var(--text-s);margin-bottom:12px;">Enter the conveyor's username or scan their QR ID card.</p>
-            <div class="fg">
-              <label class="fl">Conveyor Username</label>
-              <div class="search-row">
-                <div style="position:relative;flex:1;">
-                  <input class="fi" type="password" id="driverSearch" placeholder="e.g. CNV-PL-01" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false"
-                    onkeydown="if(event.key==='Enter')verifyDriver()"
-                    style="padding-right:42px;width:100%;">
-                  <button type="button" onclick="togglePwdVis('driverSearch','eyeConveyor')"
-                    style="position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:4px;color:var(--text-s);display:flex;align-items:center;">
-                    <svg id="eyeConveyor" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-                    </svg>
-                  </button>
-                </div>
-                <button class="btn btn-navy" onclick="verifyDriver()">VERIFY</button>
-                <button class="btn btn-outline" onclick="toggleDriverScanner()" title="Scan QR">
-                  <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-                </button>
-              </div>
-            </div>
-            <div id="driverScannerWrap" style="display:none;">
-              <div class="inline-scanner"><div id="driverQrReader"></div></div>
-            </div>
+            <p style="font-size:11px;color:var(--text-s);margin-bottom:12px;">Your details are pre-filled from your login QR card.</p>
+
             <div class="driver-result" id="driverResult">
               <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
                 <span style="background:var(--green);color:#fff;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;">
@@ -438,7 +369,7 @@ body{overflow-x:hidden;}
             </div>
             <div class="driver-not-found" id="driverNotFound">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="vertical-align:middle;margin-right:4px;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-              Conveyor not found. Check username or scan QR card.
+              Conveyor not found. Ensure they scan their SBD ID card.
             </div>
             <div class="fg" style="margin-top:14px;">
               <label class="fl">Vehicle Plate <span style="color:var(--red)">*</span></label>
@@ -476,7 +407,7 @@ body{overflow-x:hidden;}
               <button class="btn btn-gray" onclick="backToStep2()">
                 <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>BACK
               </button>
-              <button class="btn btn-green" id="submitDispatch" onclick="submitDispatch()">
+              <button class="btn btn-green" id="submitDispatch" onclick="showConfirm()">
                 <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                 SUBMIT DISPATCH
               </button>
@@ -524,8 +455,7 @@ body{overflow-x:hidden;}
             <div class="receipt-row"><span class="rk">Health Facility (PHU)</span><span class="rv" id="r-phu"></span></div>
 
             <div class="receipt-section-title">ITN DETAILS</div>
-            <div class="receipt-row"><span class="rk">IG2 ITNs</span><span class="rv" id="r-ig2"></span></div>
-            <div class="receipt-row"><span class="rk">PBO ITNs</span><span class="rv" id="r-pbo"></span></div>
+            <div class="receipt-row"><span class="rk">ITN Type</span><span class="rv">Dual-AI</span></div>
             <div class="receipt-total">
               <span>TOTAL ITNs DISPATCHED</span>
               <strong id="r-total"></strong>
@@ -581,8 +511,8 @@ body{overflow-x:hidden;}
       <div id="syncLog"></div>
     </div>
 
-    <!-- MY QR (Conveyor) -->
-    <div class="tab-panel active" id="panel-myqr">
+    <!-- MY QR (Driver) -->
+    <div class="tab-panel" id="panel-myqr">
       <div class="qr-id-card">
         <div style="font-size:10px;color:rgba(255,255,255,.55);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;">ICF-SL · ITN Distribution Sierra Leone</div>
         <div class="qr-wrap" id="driverQrCard"></div>
@@ -599,7 +529,7 @@ body{overflow-x:hidden;}
       </div>
     </div>
 
-    <!-- MY TRIPS (Conveyor) -->
+    <!-- MY TRIPS (Driver) -->
     <div class="tab-panel" id="panel-mytrips">
       <div id="myTripsList"></div>
     </div>
@@ -609,12 +539,35 @@ body{overflow-x:hidden;}
 
 <div class="notif" id="notif"></div>
 
+<!-- CONFIRMATION MODAL -->
+<div id="confirmModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9000;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#fff;border-radius:16px;max-width:360px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,.35);border-top:5px solid var(--gold);overflow:hidden;">
+    <div style="background:linear-gradient(135deg,var(--navy-d),var(--navy));padding:16px 20px;display:flex;align-items:center;gap:10px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" width="22" height="22"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span style="font-size:14px;font-weight:700;color:#fff;letter-spacing:.5px;">CONFIRM SUBMISSION</span>
+    </div>
+    <div style="padding:18px 20px;">
+      <p style="font-size:13px;color:var(--text-s);margin-bottom:14px;line-height:1.6;">Please review the details below before submitting. This cannot be undone.</p>
+      <div id="confirmSummary" style="background:var(--gray);border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:12px;"></div>
+      <p style="font-size:13px;font-weight:700;color:var(--text);text-align:center;margin-bottom:16px;">Is everything correct?</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <button onclick="closeConfirm()" style="padding:12px;background:#fff;border:2px solid var(--border);border-radius:10px;font-family:'Oswald',sans-serif;font-size:13px;font-weight:700;color:var(--text-s);cursor:pointer;letter-spacing:.5px;">
+          ← GO BACK
+        </button>
+        <button onclick="confirmAndSubmit()" style="padding:12px;background:var(--green);border:none;border-radius:10px;font-family:'Oswald',sans-serif;font-size:13px;font-weight:700;color:#fff;cursor:pointer;letter-spacing:.5px;">
+          YES, SUBMIT ✓
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 'use strict';
 
 const GAS_URL      = 'https://script.google.com/macros/s/AKfycbymRy-M5v0fVLWUjw4IXYhd1oIR2ZvnP_Dzr_iGR-Th0cMIpmE2ntGeujWYH7-C6NHIzA/exec';
-const USERS_CSV    = 'itn_movement_users.csv';
-const CASCADE_CSV  = 'cascading_data.csv';
+// Users loaded from QR scan — no CSV needed
+const CASCADE_CSV  = 'dms_cascading.csv';
 const STORAGE_KEY  = 'icf_itn_moves';
 const STORAGE_PEND = 'icf_itn_moves_pending';
 
@@ -629,92 +582,94 @@ let driverScanner = null;
 let lastRecord   = null; // for receipt download
 
 window.addEventListener('DOMContentLoaded', async () => {
-  document.getElementById('loginStatus').textContent = 'Loading…';
-  try {
-    await Promise.all([loadUsers(), loadCascadeData()]);
-    document.getElementById('loginStatus').textContent = 'Ready — enter your username';
+    try {
+    await loadCascadeData();
+    document.getElementById('loginStatus').textContent = 'Ready — scan your SBD QR ID card';
   } catch(e) {
-    document.getElementById('loginStatus').textContent = 'Error loading data';
+    document.getElementById('loginStatus').textContent = 'Ready — scan your SBD QR ID card';
   }
 });
 
 async function loadUsers() {
   const res = await fetch(USERS_CSV);
   if (!res.ok) throw new Error('Cannot load ' + USERS_CSV);
-  const text = await res.text();
-  return new Promise((resolve, reject) => {
-    Papa.parse(text, {
-      header: true, skipEmptyLines: true,
-      complete: result => {
-        result.data.forEach(row => {
-          const u = (row.username||'').trim(); if (!u) return;
-          users[u] = {
-            full_name: (row.full_name||'').trim(),
-            role:      (row.role||'').trim(),
-            district:  (row.district||'').trim(),
-            staff_id:  (row.staff_id||'').trim(),
-            vehicle:   (row.vehicle||'').trim(),
-            phone:     (row.phone||'').trim()
-          };
-        });
-        console.log('[Users] Loaded:', Object.keys(users).length, 'users');
-        resolve();
-      },
-      error: err => reject(err)
-    });
+  Papa.parse(await res.text(), {
+    header:true, skipEmptyLines:true,
+    complete: r => r.data.forEach(row => {
+      const u = (row.username||'').trim(); if (!u) return;
+      users[u] = { full_name:(row.full_name||'').trim(), role:(row.role||'').trim(),
+                   district:(row.district||'').trim(), staff_id:(row.staff_id||'').trim(),
+                   vehicle:(row.vehicle||'').trim(), phone:(row.phone||'').trim() };
+    })
   });
 }
 
 async function loadCascadeData() {
   const res = await fetch(CASCADE_CSV);
   if (!res.ok) return;
-  const text = await res.text();
-  return new Promise((resolve) => {
-    Papa.parse(text, {
-      header: true, skipEmptyLines: true,
-      complete: r => {
-        locationData = {};
-        r.data.forEach(row => {
-          const d=(row.adm1||'').trim(), c=(row.adm2||'').trim(), p=(row.hf||'').trim();
-          if (!d||!c||!p) return;
-          if (!locationData[d]) locationData[d]={};
-          if (!locationData[d][c]) locationData[d][c]=new Set();
-          locationData[d][c].add(p);
-        });
-        for (const d in locationData)
-          for (const c in locationData[d])
-            locationData[d][c] = [...locationData[d][c]].sort();
-        populateDistrictSelect();
-        resolve();
-      },
-      error: () => resolve()
-    });
+  Papa.parse(await res.text(), {
+    header:true, skipEmptyLines:true,
+    complete: r => {
+      locationData = {};
+      r.data.forEach(row => {
+        const _d=(row.District||row.district||row.adm1||'').trim();
+        const d=_d.replace(/ District$/i,'').trim(), c=(row.Chiefdom||row.chiefdom||row.adm2||'').trim().replace(/ Chiefdom$/i,'').trim(), p=(row.Facility||row.facility||row.phu||row.hf||'').trim();
+        if (!d||!c||!p) return;
+        if (!locationData[d]) locationData[d]={};
+        if (!locationData[d][c]) locationData[d][c]=new Set();
+        locationData[d][c].add(p);
+      });
+      for (const d in locationData)
+        for (const c in locationData[d])
+          locationData[d][c] = Array.from(locationData[d][c]).sort();
+      populateDistrictSelect();
+    }
   });
 }
 
 function populateDistrictSelect() {
-  // District is readonly — auto-filled from staff's district on login
-  // Nothing to populate here; enterApp sets the value directly
-}
-
-function setDistrictFromUser() {
-  const input = document.getElementById('ds-district');
-  if (!input) return;
-  input.value = currentUser.district || '';
-  // Trigger chiefdom cascade for the staff's district
-  cascadeChiefdom();
+  const sel = document.getElementById('ds-district');
+  sel.innerHTML = '<option value="">Select District...</option>';
+  Object.keys(locationData).sort().forEach(d => {
+    const o=document.createElement('option'); o.value=d; o.textContent=d; sel.appendChild(o);
+  });
 }
 
 /* ── LOGIN ─────────────────────────────────────────────────── */
-function doLogin() {
-  const raw   = document.getElementById('loginUser').value.trim();
+function doLogin(qrText) {
   const errEl = document.getElementById('loginErr');
   errEl.classList.remove('show');
-  if (!raw) { showLoginErr('Please enter your username.'); return; }
-  if (!Object.keys(users).length) { showLoginErr('Users not loaded yet — please wait.'); return; }
-  const u = users[raw];
-  if (!u) { showLoginErr('Username not recognised. Contact your supervisor.'); return; }
-  currentUser = { ...u, username: raw };
+  if (!qrText) { showLoginErr('No QR data received.'); return; }
+
+  // Parse SBD ID QR: "Name: X\nID: Y\nRole: Z\nDistrict: W\nTel: V"
+  var parsed = { name:'', id:'', role:'', district:'', tel:'' };
+  if (qrText.indexOf('Name:') !== -1 || qrText.indexOf('ID:') !== -1) {
+    qrText.split('\n').forEach(function(line) {
+      var s = line.indexOf(':'); if (s === -1) return;
+      var k = line.substring(0, s).trim().toLowerCase();
+      var v = line.substring(s + 1).trim();
+      if (k === 'name')     parsed.name     = v;
+      if (k === 'id')       parsed.id       = v;
+      if (k === 'role')     parsed.role     = v;
+      if (k === 'district') parsed.district = v;
+      if (k === 'tel')      parsed.tel      = v;
+    });
+  } else {
+    try { var o = JSON.parse(qrText); parsed.id = o.id||o.ID||qrText; parsed.name = o.name||o.Name||''; parsed.role = o.role||o.Role||''; parsed.district = o.district||o.District||''; parsed.tel = o.tel||o.phone||''; }
+    catch(e) { parsed.id = qrText.trim(); }
+  }
+
+  // Use QR data directly — no CSV lookup needed
+  if (!parsed.name) { showLoginErr('Could not read name from QR. Use your SBD ID card.'); return; }
+  if (!parsed.role) { showLoginErr('Role not found in QR. Use your SBD ID card.'); return; }
+
+  currentUser = {
+    username:  parsed.id || parsed.name,
+    full_name: parsed.name,
+    role:      parsed.role,
+    district:  parsed.district,
+    phone:     parsed.tel
+  };
   stopLoginScanner();
   enterApp();
 }
@@ -731,7 +686,7 @@ function toggleLoginScanner() {
     if (typeof Html5Qrcode==='undefined') { showLoginErr('QR scanner not available.'); return; }
     loginScanner = new Html5Qrcode('loginQrReader');
     loginScanner.start({facingMode:'environment'},{fps:10,qrbox:{width:220,height:220}},
-      decoded => { stopLoginScanner(); document.getElementById('loginUser').value=decoded.trim(); doLogin(); },
+      decoded => { stopLoginScanner(); doLogin(decoded.trim()); },
       () => {}
     ).catch(err => { showLoginErr('Camera error: '+err); wrap.style.display='none'; });
   } else { stopLoginScanner(); }
@@ -745,9 +700,9 @@ function stopLoginScanner() {
 function doLogout() {
   stopLoginScanner(); stopDriverScanner();
   currentUser=null; form={};
-  document.getElementById('loginUser').value='';
   document.getElementById('loginErr').classList.remove('show');
   document.getElementById('scr-app').classList.remove('active');
+  document.getElementById('mainTabBar').style.display='none';
   document.getElementById('scr-login').classList.add('active');
 }
 
@@ -758,21 +713,36 @@ function enterApp() {
   document.getElementById('topbarSub').textContent =
     currentUser.full_name + ' · ' + currentUser.role + ' · ' + currentUser.district;
 
-  if (currentUser.role === 'DMS Staff') {
-    document.getElementById('dmsTabBar').style.display='flex';
-    document.getElementById('drvTabBar').style.display='none';
-    setDistrictFromUser();
-    switchTab('dashboard');
-  } else if (currentUser.role === 'Conveyor') {
-    document.getElementById('drvTabBar').style.display='flex';
-    document.getElementById('dmsTabBar').style.display='none';
-    renderDriverQR();
-    switchTab('myqr');
+  // One interface for everyone — pre-populate from QR
+  document.getElementById('mainTabBar').style.display = 'flex';
+
+  // Pre-fill district and cascade
+  var dist = currentUser.district || '';
+  var distEl = document.getElementById('ds-district');
+  if (distEl) distEl.value = dist;
+  if (dist) cascadeChiefdom();
+
+  // Pre-populate conveyor info in Step 2 from logged-in user
+  form.verifiedDriver   = currentUser;
+  form.driverName       = currentUser.full_name || '';
+  form.driverUsername   = currentUser.username  || '';
+  form.driverPhone      = currentUser.phone      || '';
+  form.driverDistrict   = currentUser.district   || '';
+
+  // Show conveyor info card in Step 2 immediately
+  var resultEl = document.getElementById('driverResult');
+  if (resultEl) {
+    document.getElementById('driverName').textContent     = form.driverName;
+    document.getElementById('driverPhone').textContent    = form.driverPhone;
+    document.getElementById('driverDistrict').textContent = form.driverDistrict;
+    resultEl.classList.add('show');
   }
+
+  switchTab('dashboard');
 }
 
 /* ── TABS ──────────────────────────────────────────────────── */
-const ALL_PANELS = ['dashboard','dispatch','records','pending','myqr','mytrips'];
+const ALL_PANELS = ['dashboard','dispatch','records','pending'];
 function switchTab(name) {
   ALL_PANELS.forEach(p => {
     document.getElementById('panel-'+p)?.classList.remove('active');
@@ -788,7 +758,7 @@ function switchTab(name) {
 
 /* ── CASCADE ──────────────────────────────────────────────── */
 function cascadeChiefdom() {
-  const d = document.getElementById('ds-district').value.trim();
+  const d = document.getElementById('ds-district').value;
   const chiefSel = document.getElementById('ds-chiefdom');
   const phuSel   = document.getElementById('ds-phu');
   chiefSel.innerHTML='<option value="">Select Chiefdom...</option>'; chiefSel.disabled=true;
@@ -805,12 +775,12 @@ function cascadeChiefdom() {
 }
 
 function cascadePHU() {
-  const d=document.getElementById('ds-district').value.trim();
-  const c=document.getElementById('ds-chiefdom').value;
+  const raw = document.getElementById('ds-district').value.trim();
+  const d   = Object.keys(locationData).find(function(k){ return k.toLowerCase() === raw.toLowerCase(); }) || raw;
+  const c   = document.getElementById('ds-chiefdom').value;
   const phuSel=document.getElementById('ds-phu');
   phuSel.innerHTML='<option value="">Select PHU...</option>'; phuSel.disabled=true;
   document.getElementById('cnt-phu').textContent='';
-  hidePHUDupWarn();
   if (!d||!c||!locationData[d]?.[c]) return;
   phuSel.disabled=false;
   locationData[d][c].forEach(p => {
@@ -820,108 +790,7 @@ function cascadePHU() {
   document.getElementById('cnt-phu').textContent = n + ' facilit'+(n!==1?'ies':'y');
 }
 
-function hidePHUDupWarn() {
-  document.getElementById('phuDupWarn').style.display = 'none';
-  const btn = document.getElementById('btnNextStep2');
-  if (btn) btn.disabled = false;
-}
-
-async function checkPHUDuplicate() {
-  const phu      = document.getElementById('ds-phu').value;
-  const district = document.getElementById('ds-district').value.trim();
-  const chiefdom = document.getElementById('ds-chiefdom').value;
-  hidePHUDupWarn();
-  if (!phu) return;
-
-  const key = (district + '|' + chiefdom + '|' + phu).toLowerCase();
-
-  // ── 1. Check LOCAL storage immediately ───────────────────────
-  const localMatch = dispatches.find(r =>
-    ((r.destination_district||'') + '|' + (r.chiefdom||'') + '|' + (r.phu||'')).toLowerCase() === key
-  );
-  if (localMatch) { showPHUDupWarn(localMatch, 'local'); return; }
-
-  // ── 2. Check REMOTE (Google Sheets) ───────────────────────────
-  // Show a subtle "checking..." indicator on the NEXT button
-  const btn = document.getElementById('btnNextStep2');
-  const origHTML = btn ? btn.innerHTML : '';
-  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spin"></span> CHECKING…'; }
-
-  try {
-    const url = GAS_URL + '?action=checkPHUDispatch' +
-      '&district=' + encodeURIComponent(district) +
-      '&chiefdom=' + encodeURIComponent(chiefdom) +
-      '&phu='      + encodeURIComponent(phu);
-    const res  = await Promise.race([
-      fetch(url),
-      new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 6000))
-    ]);
-    const data = await res.json();
-    if (data.found) {
-      showPHUDupWarn(data, 'remote');
-      return; // button stays disabled inside showPHUDupWarn
-    }
-  } catch(e) {
-    // Network error or timeout — fail open (let them proceed, hard check on submit)
-    console.warn('[PHU check] Remote check failed:', e.message);
-  }
-
-  // Clean — re-enable button
-  if (btn) { btn.disabled = false; btn.innerHTML = origHTML; }
-}
-
-function showPHUDupWarn(rec, source) {
-  document.getElementById('phuDupWarn').style.display = 'block';
-
-  // Normalise field names — local records use snake_case, GAS response may differ
-  const dispatchId  = rec.dispatch_id  || rec.dispatchId  || '—';
-  const ts          = rec.timestamp    || rec.ts          || '';
-  const staffName   = rec.staff_name   || rec.staffName   || '—';
-  const driverName  = rec.driver_name  || rec.driverName  || rec.conveyor_name || '—';
-  const ig2         = rec.ig2_qty      != null ? rec.ig2_qty : (rec.ig2 != null ? rec.ig2 : '—');
-  const pbo         = rec.pbo_qty      != null ? rec.pbo_qty : (rec.pbo != null ? rec.pbo : '—');
-  const total       = rec.total_qty    != null ? rec.total_qty : (rec.total != null ? rec.total : '—');
-  const chiefdom    = rec.chiefdom     || '—';
-  const phu         = rec.phu          || '—';
-  const srcLabel    = source === 'remote'
-    ? '<span style="background:#e74c3c;color:#fff;padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700;margin-left:6px;">GOOGLE SHEETS</span>'
-    : '<span style="background:var(--navy);color:#fff;padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700;margin-left:6px;">LOCAL</span>';
-
-  let dtStr = '—';
-  if (ts) {
-    try {
-      const d = new Date(ts);
-      dtStr = d.toLocaleDateString('en-SL', {day:'2-digit', month:'short', year:'numeric'}) +
-              ' ' + d.toLocaleTimeString('en-SL', {hour:'2-digit', minute:'2-digit'});
-    } catch(e) { dtStr = ts; }
-  }
-
-  document.getElementById('phuDupCard').innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:4px;">
-      <span style="font-size:13px;font-weight:700;color:var(--navy);">${dispatchId}${srcLabel}</span>
-      <span style="font-size:10px;color:var(--text-s);">${dtStr}</span>
-    </div>
-    <div style="font-size:12px;color:var(--text);margin-bottom:6px;">
-      <svg viewBox="0 0 24 24" fill="none" stroke="var(--navy)" stroke-width="2" width="12" height="12" style="vertical-align:middle;margin-right:3px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-      ${chiefdom} → <strong>${phu}</strong>
-    </div>
-    <div style="display:flex;flex-wrap:wrap;gap:4px;">
-      <span style="background:var(--navy-l);color:var(--navy);padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;">IG2: ${ig2}</span>
-      <span style="background:var(--navy-l);color:var(--navy);padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;">PBO: ${pbo}</span>
-      <span style="background:var(--green-l);color:var(--green-d);padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;">${total} ITNs</span>
-      ${driverName !== '—' ? `<span style="background:var(--gold-l);color:#8a6500;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;">${driverName}</span>` : ''}
-      <span style="background:var(--gray);color:var(--text-s);padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;">By: ${staffName}</span>
-    </div>
-  `;
-  const btn = document.getElementById('btnNextStep2');
-  if (btn) { btn.disabled = true; btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> DUPLICATE PHU'; }
-}
-
-function updateTotal() {
-  const ig2=parseInt(document.getElementById('qty-ig2').value)||0;
-  const pbo=parseInt(document.getElementById('qty-pbo').value)||0;
-  document.getElementById('qtyTotal').textContent=ig2+pbo;
-}
+function updateTotal() { /* single field — no-op */ }
 
 function updatePlate() {
   const L=document.getElementById('vehLetters').value||'—';
@@ -931,18 +800,17 @@ function updatePlate() {
 
 /* ── DISPATCH STEPS ─────────────────────────────────────────── */
 function goStep2() {
-  const district=document.getElementById('ds-district').value.trim();
+  const district=document.getElementById('ds-district').value;
   const chiefdom=document.getElementById('ds-chiefdom').value;
   const phu=document.getElementById('ds-phu').value;
-  const ig2=parseInt(document.getElementById('qty-ig2').value)||0;
-  const pbo=parseInt(document.getElementById('qty-pbo').value)||0;
+  const dualai=parseInt(document.getElementById('qty-dualai').value)||0;
   if (!district||!chiefdom||!phu) { toast('Select District, Chiefdom and PHU.','error'); return; }
-  if (ig2+pbo===0) { toast('Enter at least one ITN quantity.','error'); return; }
+  if (dualai===0) { toast('Enter Dual-AI ITN quantity.','error'); return; }
   // Hard duplicate check
-  const dupKey = (district+'|'+chiefdom+'|'+phu).toLowerCase();
-  const dup = dispatches.find(r => ((r.destination_district||'')+'|'+(r.chiefdom||'')+'|'+(r.phu||'')).toLowerCase()===dupKey);
+  const dupKey=(district+'|'+chiefdom+'|'+phu).toLowerCase();
+  const dup=dispatches.find(r=>((r.destination_district||'')+'|'+(r.chiefdom||'')+'|'+(r.phu||'')).toLowerCase()===dupKey);
   if (dup) { toast('This PHU already has a dispatch — '+dup.dispatch_id,'error'); return; }
-  form.district=district; form.chiefdom=chiefdom; form.phu=phu; form.ig2=ig2; form.pbo=pbo;
+  form.district=district; form.chiefdom=chiefdom; form.phu=phu; form.dualai=dualai;
   setStep(2);
 }
 
@@ -962,9 +830,7 @@ function goStep3() {
     <div class="summ-item"><span class="sk">DMS Staff</span><span class="sv">${currentUser.full_name}</span></div>
     <div class="summ-item"><span class="sk">District → Chiefdom</span><span class="sv">${form.district} → ${form.chiefdom}</span></div>
     <div class="summ-item"><span class="sk">Destination PHU</span><span class="sv" style="color:var(--navy);font-weight:700;">${form.phu}</span></div>
-    <div class="summ-item"><span class="sk">IG2 ITNs</span><span class="sv">${form.ig2}</span></div>
-    <div class="summ-item"><span class="sk">PBO ITNs</span><span class="sv">${form.pbo}</span></div>
-    <div class="summ-item"><span class="sk">Total ITNs</span><span class="sv" style="font-size:18px;color:var(--navy);">${form.ig2+form.pbo}</span></div>
+    <div class="summ-item"><span class="sk">Dual-AI ITNs</span><span class="sv" style="font-size:18px;color:var(--navy);">${form.dualai}</span></div>
     <div class="summ-item"><span class="sk">Driver</span><span class="sv">${form.driverName} (${form.driverUsername})</span></div>
     <div class="summ-item"><span class="sk">Vehicle Plate</span><span class="sv">${form.vehicle}</span></div>
   `;
@@ -991,52 +857,91 @@ function setStep(n) {
 
 function newDispatch() {
   form={};
-  document.getElementById('qty-ig2').value='0';
-  document.getElementById('qty-pbo').value='0';
+  document.getElementById('qty-dualai').value='0';
   document.getElementById('qtyTotal').textContent='0';
   document.getElementById('ds-chiefdom').innerHTML='<option value="">Select Chiefdom...</option>'; document.getElementById('ds-chiefdom').disabled=true;
   document.getElementById('ds-phu').innerHTML='<option value="">Select PHU...</option>'; document.getElementById('ds-phu').disabled=true;
   document.getElementById('cnt-chiefdom').textContent=''; document.getElementById('cnt-phu').textContent='';
-  document.getElementById('driverSearch').value='';
-  document.getElementById('driverResult').classList.remove('show');
+  // Re-populate from logged-in user
+  form.verifiedDriver = currentUser;
+  form.driverName     = currentUser.full_name || '';
+  form.driverUsername = currentUser.username  || '';
+  form.driverPhone    = currentUser.phone     || '';
+  form.driverDistrict = currentUser.district  || '';
+  var driverResultEl = document.getElementById('driverResult');
+  if (driverResultEl) {
+    document.getElementById('driverName').textContent     = form.driverName;
+    document.getElementById('driverPhone').textContent    = form.driverPhone;
+    document.getElementById('driverDistrict').textContent = form.driverDistrict;
+    driverResultEl.classList.add('show');
+  }
   document.getElementById('driverNotFound').classList.remove('show');
   document.getElementById('vehLetters').value=''; document.getElementById('vehNumbers').value='';
   document.getElementById('platePrev').textContent='— — —';
   stopDriverScanner();
   document.getElementById('step-receipt').style.display='none';
-  hidePHUDupWarn();
-  setDistrictFromUser();
+  if (currentUser.district && locationData[currentUser.district]) {
+    var inputEl = document.getElementById('ds-district'); if (inputEl) inputEl.value = currentUser.district || ''; cascadeChiefdom();
+  } else { document.getElementById('ds-district').value=''; }
   setStep(1);
 }
 
-/* ── CONVEYOR VERIFY ────────────────────────────────────────── */
-function verifyDriver() {
-  const raw      = document.getElementById('driverSearch').value.trim();
-  if (!raw) { toast('Enter a conveyor username.','error'); return; }
-  const u        = users[raw];
-  const resultEl = document.getElementById('driverResult');
-  const notFoundEl = document.getElementById('driverNotFound');
-  if (!u || u.role !== 'Conveyor') {
-    resultEl.classList.remove('show');
-    notFoundEl.innerHTML = `
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="vertical-align:middle;margin-right:4px;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-      Conveyor "<strong>${raw}</strong>" not found. Check username and try again.
-    `;
-    notFoundEl.classList.add('show');
-    form.verifiedDriver = null;
-    return;
+/* ── DRIVER VERIFY ────────────────────────────────────────── */
+function verifyDriver(qrText) {
+  var resultEl   = document.getElementById('driverResult');
+  var notFoundEl = document.getElementById('driverNotFound');
+  if (!qrText) { toast('No QR data.', 'error'); return; }
+
+  // Parse SBD ID QR
+  var parsed = { name:'', id:'', role:'', district:'', tel:'' };
+  if (qrText.indexOf('Name:') !== -1 || qrText.indexOf('ID:') !== -1) {
+    qrText.split('\n').forEach(function(line) {
+      var s = line.indexOf(':'); if (s === -1) return;
+      var k = line.substring(0, s).trim().toLowerCase();
+      var v = line.substring(s + 1).trim();
+      if (k === 'name')     parsed.name     = v;
+      if (k === 'id')       parsed.id       = v;
+      if (k === 'role')     parsed.role     = v;
+      if (k === 'district') parsed.district = v;
+      if (k === 'tel')      parsed.tel      = v;
+    });
+  } else {
+    try { var o = JSON.parse(qrText); parsed.id = o.id||o.ID||qrText; parsed.name = o.name||o.Name||''; parsed.role = o.role||o.Role||''; parsed.district = o.district||o.District||''; parsed.tel = o.tel||o.phone||''; }
+    catch(e) { parsed.id = qrText.trim(); }
   }
-  form.verifiedDriver = u; form.driverUsername = raw; form.driverName = u.full_name;
-  document.getElementById('driverName').textContent = u.full_name;
+
+  // Check role — must be Conveyor
+  if (!parsed.role || parsed.role.toLowerCase() !== 'conveyor') {
+    resultEl.classList.remove('show');
+    document.getElementById('driverNotFound').textContent =
+      parsed.role ? (parsed.name || 'This person') + ' is a ' + parsed.role + ', not a Conveyor.' : 'Role not found in QR.';
+    document.getElementById('driverNotFound').classList.add('show');
+    form.verifiedDriver = null; return;
+  }
+
+  // Use QR data directly
+  var name     = parsed.name     || '';
+  var district = parsed.district || '';
+  var phone    = parsed.tel      || '';
+  var username = parsed.id       || name;
+
+  if (!name) { resultEl.classList.remove('show'); notFoundEl.classList.add('show'); form.verifiedDriver=null; return; }
+
+  form.verifiedDriver = matched || parsed;
+  form.driverUsername = username;
+  form.driverName     = name;
+
+  document.getElementById('driverName').textContent = name;
   document.getElementById('driverMeta').textContent =
-    u.district + (u.vehicle ? ' · Vehicle: ' + u.vehicle : '') + (u.phone ? ' · ' + u.phone : '');
+    district + (vehicle ? ' · Vehicle: ' + vehicle : '') + (phone ? ' · ' + phone : '');
   resultEl.classList.add('show');
   notFoundEl.classList.remove('show');
-  if (u.vehicle) {
-    const p = u.vehicle.split('-');
+
+  if (vehicle) {
+    var p = vehicle.split('-');
     if (p.length >= 2) { document.getElementById('vehLetters').value=p[0]; document.getElementById('vehNumbers').value=p[1]; updatePlate(); }
   }
-  toast('Conveyor ' + u.full_name + ' verified ✓', 'success');
+  toast('Conveyor ' + name + ' verified ✓', 'success');
 }
 
 function toggleDriverScanner() {
@@ -1046,7 +951,7 @@ function toggleDriverScanner() {
     if (typeof Html5Qrcode==='undefined') { toast('QR scanner unavailable.','error'); return; }
     driverScanner=new Html5Qrcode('driverQrReader');
     driverScanner.start({facingMode:'environment'},{fps:10,qrbox:{width:200,height:200}},
-      decoded => { stopDriverScanner(); document.getElementById('driverSearch').value=decoded.trim(); verifyDriver(); },
+      decoded => { stopDriverScanner(); verifyDriver(decoded.trim()); },
       () => {}
     ).catch(() => { toast('Camera error.','error'); wrap.style.display='none'; });
   } else { stopDriverScanner(); }
@@ -1055,6 +960,37 @@ function toggleDriverScanner() {
 function stopDriverScanner() {
   if (driverScanner) { driverScanner.stop().catch(()=>{}); driverScanner=null; }
   document.getElementById('driverScannerWrap').style.display='none';
+}
+
+/* ── CONFIRMATION ──────────────────────────────────────────── */
+function showConfirm() {
+  // Build summary for review
+  var rows = [
+    ['Dispatch ID',    form.dispId],
+    ['Destination',    form.district + ' → ' + form.chiefdom],
+    ['PHU',            form.phu],
+    ['Dual-AI ITNs',  form.dualai],
+    ['Conveyor',       form.driverName],
+    ['Vehicle',        form.vehicle],
+  ];
+  var html = rows.map(function(r) {
+    return '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);">' +
+      '<span style="color:var(--text-s);">' + r[0] + '</span>' +
+      '<span style="font-weight:600;color:var(--text);">' + r[1] + '</span>' +
+      '</div>';
+  }).join('');
+  document.getElementById('confirmSummary').innerHTML = html;
+  document.getElementById('confirmModal').style.display = 'flex';
+}
+
+function closeConfirm() {
+  document.getElementById('confirmModal').style.display = 'none';
+  toast('Go back and confirm your details before submitting.', '');
+}
+
+function confirmAndSubmit() {
+  document.getElementById('confirmModal').style.display = 'none';
+  submitDispatch();
 }
 
 /* ── SUBMIT + RECEIPT ─────────────────────────────────────── */
@@ -1068,7 +1004,7 @@ async function submitDispatch() {
     staff_name:currentUser.full_name, staff_username:currentUser.username,
     staff_district:currentUser.district,
     destination_district:form.district, chiefdom:form.chiefdom, phu:form.phu,
-    ig2_qty:form.ig2, pbo_qty:form.pbo, total_qty:form.ig2+form.pbo,
+    itn_type:'Dual-AI', dualai_qty:form.dualai, total_qty:form.dualai,
     driver_name:form.driverName, driver_username:form.driverUsername,
     vehicle:form.vehicle, status:'dispatched', synced:false
   };
@@ -1106,8 +1042,6 @@ function showReceipt(r, synced) {
   document.getElementById('r-dest-district').textContent  = r.destination_district;
   document.getElementById('r-chiefdom').textContent    = r.chiefdom;
   document.getElementById('r-phu').textContent         = r.phu;
-  document.getElementById('r-ig2').textContent         = r.ig2_qty;
-  document.getElementById('r-pbo').textContent         = r.pbo_qty;
   document.getElementById('r-total').textContent       = r.total_qty;
   document.getElementById('r-driver').textContent      = r.driver_name;
   document.getElementById('r-driver-user').textContent = r.driver_username;
@@ -1126,25 +1060,25 @@ function showReceipt(r, synced) {
     district:     r.destination_district,
     chiefdom:     r.chiefdom,
     phu:          r.phu,
-    ig2:          r.ig2_qty,
-    pbo:          r.pbo_qty,
+    itn_type:     'Dual-AI',
     total:        r.total_qty,
-    conveyor:     r.driver_name,
-    conveyor_user:r.driver_username,
+    driver:       r.driver_name,
     vehicle:      r.vehicle,
     staff:        r.staff_name,
     verify_code:  r.dispatch_id.slice(-6).toUpperCase()
   });
 
   if (typeof QRCode !== 'undefined') {
-    new QRCode(qrContainer, {
-      text:         qrData,
-      width:        200,
-      height:       200,
-      colorDark:    '#004080',
-      colorLight:   '#ffffff',
-      correctLevel: QRCode.CorrectLevel.M
-    });
+    try {
+      new QRCode(qrContainer, {
+        text:         qrData,
+        width:        200,
+        height:       200,
+        colorDark:    '#004080',
+        colorLight:   '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    } catch(e) { console.error('QR error:', e); }
   }
 
   // Show receipt, hide steps
@@ -1159,21 +1093,17 @@ function showReceipt(r, synced) {
 }
 
 function downloadReceipt() {
-  // qrcodejs generates a canvas inside the container
   const canvas = document.querySelector('#receiptQR canvas');
-  const img    = document.querySelector('#receiptQR img');
-  const src    = canvas ? canvas.toDataURL('image/png') : (img ? img.src : null);
-  if (!src) { toast('QR code not available.','error'); return; }
-  const link = document.createElement('a');
+  if (!canvas) { toast('QR code not available.','error'); return; }
+  const link=document.createElement('a');
   link.download = (lastRecord ? lastRecord.dispatch_id : 'dispatch') + '-qr.png';
-  link.href = src;
+  link.href = canvas.toDataURL('image/png');
   link.click();
 }
 
 function printReceipt() {
   const canvas = document.querySelector('#receiptQR canvas');
-  const qrImg  = document.querySelector('#receiptQR img');
-  const qrSrc  = canvas ? canvas.toDataURL('image/png') : (qrImg ? qrImg.src : '');
+  const qrSrc = canvas ? canvas.toDataURL('image/png') : '';
   const r = lastRecord || {};
   const win = window.open('','_blank');
   win.document.write(`
@@ -1221,11 +1151,10 @@ function printReceipt() {
         <div class="row"><span class="k">Chiefdom</span><span class="v">${r.chiefdom||''}</span></div>
         <div class="row"><span class="k">Health Facility</span><span class="v">${r.phu||''}</span></div>
         <div class="sec-title">ITN DETAILS</div>
-        <div class="row"><span class="k">IG2 ITNs</span><span class="v">${r.ig2_qty||0}</span></div>
-        <div class="row"><span class="k">PBO ITNs</span><span class="v">${r.pbo_qty||0}</span></div>
+        <div class="row"><span class="k">ITN Type</span><span class="v">Dual-AI</span></div>
         <div class="total-bar"><span>TOTAL ITNs DISPATCHED</span><strong>${r.total_qty||0}</strong></div>
         <div class="sec-title">TRANSPORT</div>
-        <div class="row"><span class="k">Conveyor</span><span class="v">${r.driver_name||''}</span></div>
+        <div class="row"><span class="k">Driver</span><span class="v">${r.driver_name||''}</span></div>
         <div class="row"><span class="k">Username</span><span class="v">${r.driver_username||''}</span></div>
         <div class="row"><span class="k">Vehicle Plate</span><span class="v">${r.vehicle||''}</span></div>
         <div class="verify">
@@ -1296,8 +1225,7 @@ function dispatchCard(r) {
       ${r.chiefdom} → ${r.phu}
     </div>
     <div class="dc-pills">
-      <span class="pill pill-navy">IG2: ${r.ig2_qty}</span>
-      <span class="pill pill-navy">PBO: ${r.pbo_qty}</span>
+      <span class="pill pill-navy">Dual-AI</span>
       <span class="pill pill-green">
         <svg viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/></svg>
         ${r.total_qty} ITNs
@@ -1340,21 +1268,27 @@ function renderDriverQR() {
   document.getElementById('driverCardDistrict').textContent= u.district;
   document.getElementById('driverCardVehicle').textContent = u.vehicle ? 'Vehicle: '+u.vehicle : '';
   document.getElementById('driverCardUsername').textContent= u.username;
-  const container=document.getElementById('driverQrCard');
-  container.innerHTML='';
-  const canvas=document.createElement('canvas');
-  container.appendChild(canvas);
+  var container = document.getElementById('driverQrCard');
+  container.innerHTML = '';
+  // Full SBD ID format so DMS app can parse Name, Role, District, Tel
+  var qrText = 'Name: ' + (u.full_name||'') + '\nID: ' + (u.username||'') +
+               '\nRole: ' + (u.role||'') + '\nDistrict: ' + (u.district||'') +
+               '\nTel: ' + (u.phone||'');
   if (typeof QRCode !== 'undefined') {
-    new QRCode(container, {
-      text:         u.username,
-      width:        160,
-      height:       160,
-      colorDark:    '#004080',
-      colorLight:   '#ffffff',
-      correctLevel: QRCode.CorrectLevel.M
-    });
+    try {
+      new QRCode(container, {
+        text:         qrText,
+        width:        170,
+        height:       170,
+        colorDark:    '#004080',
+        colorLight:   '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    } catch(e) {
+      container.textContent = u.username;
+    }
   } else {
-    container.innerHTML='<div style="font-size:20px;font-weight:700;color:var(--navy);padding:16px;letter-spacing:3px;">'+u.username+'</div>';
+    container.textContent = u.username;
   }
 }
 
@@ -1371,19 +1305,6 @@ function toast(msg, type='') {
   const el=document.getElementById('notif');
   el.textContent=msg; el.className='notif show'+(type?' '+type:'');
   clearTimeout(_nt); _nt=setTimeout(()=>el.classList.remove('show'),3500);
-}
-
-/* ── PASSWORD TOGGLE ─────────────────────────────────────────── */
-function togglePwdVis(inputId, eyeId) {
-  const inp = document.getElementById(inputId);
-  const eye = document.getElementById(eyeId);
-  if (!inp || !eye) return;
-  const show = inp.type === 'password';
-  inp.type = show ? 'text' : 'password';
-  // Swap eye icon: open eye when hidden, crossed eye when shown
-  eye.innerHTML = show
-    ? '<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
-    : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
 }
 </script>
 </body>
