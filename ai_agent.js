@@ -1,4 +1,3 @@
-
 // ============================================================
 //  ICF-SL  ai_agent.js
 //  • Analysis dashboard — fetches from ICF-SL Server via GAS
@@ -872,7 +871,7 @@
                   <table class="tg-chief-tbl">
                     <thead><tr>
                       <th>#</th>
-                      <th>Chiefdom</th>
+                      <th>Chiefdom / PHU</th>
                       <th style="text-align:center;">Target</th>
                       <th style="text-align:center;">Submitted</th>
                       <th style="text-align:center;">Remaining</th>
@@ -917,10 +916,50 @@
                     return `<span class="tg-chip pend new-school" title="${nm} (NEW — added in field)">★ ${lbl}</span>`;
                 }).join('');
 
+                // Build PHU sub-rows
+                const phuMap = {};
+                schs.forEach(s => {
+                    if (!phuMap[s.phu]) phuMap[s.phu] = [];
+                    phuMap[s.phu].push(s);
+                });
+                const phuKeys = Object.keys(phuMap).sort();
+                const phuSubRows = phuKeys.map((phu, pi) => {
+                    const pSchs  = phuMap[phu];
+                    const pTotal = pSchs.length;
+                    const pDone  = pSchs.filter(s => submitted.has(s.key)).length;
+                    const pPct   = pTotal > 0 ? Math.round((pDone / pTotal) * 100) : 0;
+                    const pCol   = pPct >= 80 ? '#28a745' : pPct >= 50 ? '#f0a500' : '#dc3545';
+                    const pChips = pSchs.map(s => {
+                        const done = submitted.has(s.key);
+                        const lbl  = s.name.length > 20 ? s.name.substring(0,18)+'…' : s.name;
+                        return `<span class="tg-chip ${done?'done':'pend'}" title="${s.name} · ${s.community}">${done?'✓ ':''} ${lbl}</span>`;
+                    }).join('');
+                    return `<tr style="background:#f8fbff;">
+                        <td style="color:#bbb;font-size:10px;padding-left:20px;">└</td>
+                        <td style="font-size:11px;color:#555;padding-left:20px;white-space:nowrap;">
+                            <span style="background:#e8f1fb;color:#004080;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;">PHU</span>
+                            ${phu}
+                        </td>
+                        <td style="text-align:center;font-size:11px;">${pTotal}</td>
+                        <td style="text-align:center;font-size:11px;color:#28a745;font-weight:700;">${pDone}</td>
+                        <td style="text-align:center;font-size:11px;color:${pTotal-pDone>0?'#dc3545':'#28a745'};font-weight:700;">${pTotal-pDone}</td>
+                        <td>
+                          <div class="tg-prog-cell">
+                            <div class="tg-prog-bar"><div class="tg-prog-fill" style="width:${pPct}%;background:${pCol};"></div></div>
+                            <span style="font-family:'Oswald',sans-serif;font-size:10px;font-weight:700;color:${pCol};white-space:nowrap;">${pPct}%</span>
+                          </div>
+                        </td>
+                        <td><div class="tg-school-chips">${pChips}</div></td>
+                      </tr>`;
+                }).join('');
+
                 html += `
-                      <tr>
-                        <td style="color:#8090a0;font-size:11px;">${ci+1}</td>
-                        <td style="font-weight:700;color:#004080;white-space:nowrap;">${chiefdom}</td>
+                      <tr style="background:#f0f4f8;">
+                        <td style="color:#8090a0;font-size:11px;font-weight:700;">${ci+1}</td>
+                        <td style="font-weight:700;color:#004080;white-space:nowrap;">
+                            📍 ${chiefdom}
+                            <span style="font-size:10px;color:#607080;font-weight:400;margin-left:6px;">${phuKeys.length} PHU${phuKeys.length!==1?'s':''}</span>
+                        </td>
                         <td style="text-align:center;font-weight:700;">${cTotal}</td>
                         <td style="text-align:center;font-weight:700;color:#28a745;">${cDone}</td>
                         <td style="text-align:center;font-weight:700;color:${cTotal-cDone>0?'#dc3545':'#28a745'};">${cTotal-cDone}</td>
@@ -930,12 +969,9 @@
                             <span style="font-family:'Oswald',sans-serif;font-size:11px;font-weight:700;color:${cCol};white-space:nowrap;">${cPct}%</span>
                           </div>
                         </td>
-                        <td>
-                          <div class="tg-school-chips" id="${chipsId}">
-                            ${chips}${newInField}
-                          </div>
-                        </td>
-                      </tr>`;
+                        <td style="color:#607080;font-size:10px;">${phuKeys.length} PHU${phuKeys.length!==1?'s':''} · ${cTotal} schools</td>
+                      </tr>
+                      ${phuSubRows}`;
             });
 
             html += `
