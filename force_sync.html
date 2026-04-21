@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ICF-SL · Force Sync</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Oswald',sans-serif;background:#f0f4f8;min-height:100vh;}
+
+/* Header */
+.hdr{background:linear-gradient(135deg,#002952,#004080);padding:16px 20px;display:flex;align-items:center;gap:14px;}
+.hdr-icon{width:42px;height:42px;background:rgba(255,255,255,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.hdr-info{flex:1;}
+.hdr-title{font-size:16px;font-weight:700;color:#fff;letter-spacing:.8px;text-transform:uppercase;}
+.hdr-sub{font-size:10px;color:rgba(255,255,255,.6);margin-top:2px;}
+.hdr-status{display:flex;align-items:center;gap:6px;font-size:11px;color:#fff;font-weight:600;}
+.dot{width:8px;height:8px;border-radius:50%;}
+.dot.online{background:#28a745;} .dot.offline{background:#dc3545;}
+
+/* Body */
+.body{padding:16px;max-width:600px;margin:0 auto;}
+
+/* Status cards */
+.stat-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.stat-card{background:#fff;border-radius:12px;padding:16px;text-align:center;box-shadow:0 2px 8px rgba(0,64,128,.07);}
+.stat-val{font-size:32px;font-weight:700;color:#004080;line-height:1;}
+.stat-lbl{font-size:10px;color:#607080;text-transform:uppercase;letter-spacing:.5px;margin-top:5px;}
+
+/* Sync button */
+.sync-btn{width:100%;padding:16px;background:linear-gradient(135deg,#004080,#1a6abf);color:#fff;border:none;border-radius:12px;font-family:'Oswald',sans-serif;font-size:15px;font-weight:700;letter-spacing:.8px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:16px;transition:all .2s;box-shadow:0 4px 14px rgba(0,64,128,.3);}
+.sync-btn:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(0,64,128,.4);}
+.sync-btn:disabled{background:#94a3b8;cursor:not-allowed;transform:none;box-shadow:none;}
+.sync-btn svg{flex-shrink:0;}
+
+/* Progress bar */
+.prog-wrap{background:#fff;border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,64,128,.07);display:none;}
+.prog-label{font-size:12px;color:#607080;letter-spacing:.4px;margin-bottom:8px;display:flex;justify-content:space-between;}
+.prog-bar{height:10px;background:#e4eaf2;border-radius:6px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,#004080,#28a745);transition:width .3s;}
+.prog-detail{font-size:11px;color:#607080;margin-top:6px;text-align:center;}
+
+/* Results */
+.results{display:none;margin-bottom:16px;}
+.result-hdr{padding:12px 16px;border-radius:10px 10px 0 0;font-size:13px;font-weight:700;letter-spacing:.5px;display:flex;align-items:center;gap:8px;}
+.result-hdr.success{background:#28a745;color:#fff;}
+.result-hdr.partial{background:#f0a500;color:#fff;}
+.result-hdr.error{background:#dc3545;color:#fff;}
+.result-body{background:#fff;border-radius:0 0 10px 10px;padding:0;box-shadow:0 2px 8px rgba(0,64,128,.07);}
+.result-row{padding:11px 16px;border-bottom:1px solid #f0f4f8;display:flex;align-items:center;gap:10px;font-size:12px;}
+.result-row:last-child{border-bottom:none;}
+.result-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap;flex-shrink:0;}
+.badge-ok{background:#e8f5e9;color:#28a745;}
+.badge-dup{background:#e8f1fa;color:#004080;}
+.badge-fail{background:#fdecea;color:#dc3545;}
+.result-school{flex:1;font-weight:600;color:#0f172a;}
+.result-meta{font-size:10px;color:#94a3b8;margin-top:2px;}
+
+/* Empty state */
+.empty{background:#fff;border-radius:12px;padding:40px 20px;text-align:center;box-shadow:0 2px 8px rgba(0,64,128,.07);}
+.empty svg{stroke:#c0ccd8;margin-bottom:12px;}
+.empty-title{font-size:14px;color:#607080;letter-spacing:.5px;font-weight:600;}
+.empty-sub{font-size:12px;color:#94a3b8;margin-top:6px;}
+
+/* Log */
+.log{background:#0f172a;border-radius:10px;padding:12px 14px;font-family:monospace;font-size:11px;color:#94a3b8;max-height:160px;overflow-y:auto;margin-bottom:16px;display:none;}
+.log-line{margin-bottom:3px;line-height:1.5;}
+.log-ok{color:#4ade80;} .log-skip{color:#60a5fa;} .log-fail{color:#f87171;} .log-info{color:#fbbf24;}
+
+@keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-icon">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" width="22" height="22">
+      <path d="M21 2v6h-6M3 12a9 9 0 0115.36-6.36L21 8M3 22v-6h6M21 12a9 9 0 01-15.36 6.36L3 16"/>
+    </svg>
+  </div>
+  <div class="hdr-info">
+    <div class="hdr-title">Force Sync</div>
+    <div class="hdr-sub">ICF-SL SBD 2026 · Push all pending data to server</div>
+  </div>
+  <div class="hdr-status">
+    <div class="dot" id="connDot"></div>
+    <span id="connText"></span>
+  </div>
+</div>
+
+<div class="body">
+
+  <!-- Stats -->
+  <div class="stat-row">
+    <div class="stat-card">
+      <div class="stat-val" id="statPending" style="color:#e67e22;">—</div>
+      <div class="stat-lbl">Pending</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" id="statSubmitted" style="color:#28a745;">—</div>
+      <div class="stat-lbl">Submitted</div>
+    </div>
+  </div>
+
+  <!-- Sync button -->
+  <button class="sync-btn" id="syncBtn" onclick="startSync()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20">
+      <path d="M21 2v6h-6M3 12a9 9 0 0115.36-6.36L21 8M3 22v-6h6M21 12a9 9 0 01-15.36 6.36L3 16"/>
+    </svg>
+    FORCE SYNC ALL TO SERVER
+  </button>
+
+  <!-- Progress -->
+  <div class="prog-wrap" id="progWrap">
+    <div class="prog-label">
+      <span id="progLabel">Syncing…</span>
+      <span id="progPct">0%</span>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+    <div class="prog-detail" id="progDetail">Preparing…</div>
+  </div>
+
+  <!-- Log -->
+  <div class="log" id="syncLog"></div>
+
+  <!-- Results -->
+  <div class="results" id="results">
+    <div class="result-hdr" id="resultHdr"></div>
+    <div class="result-body" id="resultBody"></div>
+  </div>
+
+  <!-- Empty state -->
+  <div class="empty" id="emptyState" style="display:none;">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" width="44" height="44" style="display:block;margin:0 auto;">
+      <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+    </svg>
+    <div class="empty-title">ALL SUBMISSIONS SYNCED ✓</div>
+    <div class="empty-sub">No pending records on this device.</div>
+  </div>
+
+</div><!-- /body -->
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbymRy-M5v0fVLWUjw4IXYhd1oIR2ZvnP_Dzr_iGR-Th0cMIpmE2ntGeujWYH7-C6NHIzA/exec';
+
+// ── Load pending from localStorage ───────────────────────────
+function getPending() {
+    try { return JSON.parse(localStorage.getItem('itn_pending') || '[]'); } catch(e) { return []; }
+}
+function getSubmitted() {
+    try { return JSON.parse(localStorage.getItem('itn_submitted') || '[]'); } catch(e) { return []; }
+}
+function savePending(arr) {
+    try { localStorage.setItem('itn_pending', JSON.stringify(arr)); } catch(e) {}
+}
+
+// ── Update UI on load ─────────────────────────────────────────
+function refreshStats() {
+    const pending   = getPending();
+    const submitted = getSubmitted();
+    document.getElementById('statPending').textContent   = pending.length;
+    document.getElementById('statSubmitted').textContent = submitted.length;
+    const online = navigator.onLine;
+    document.getElementById('connDot').className  = 'dot ' + (online ? 'online' : 'offline');
+    document.getElementById('connText').textContent = online ? 'ONLINE' : 'OFFLINE';
+    if (pending.length === 0) {
+        document.getElementById('emptyState').style.display = 'block';
+        document.getElementById('syncBtn').disabled = true;
+        document.getElementById('syncBtn').style.background = '#94a3b8';
+    } else {
+        document.getElementById('emptyState').style.display = 'none';
+        document.getElementById('syncBtn').disabled = !online;
+    }
+}
+
+// ── Log helper ────────────────────────────────────────────────
+function addLog(msg, type) {
+    const log = document.getElementById('syncLog');
+    log.style.display = 'block';
+    const d = document.createElement('div');
+    d.className = 'log-line log-' + (type || 'info');
+    d.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
+    log.appendChild(d);
+    log.scrollTop = log.scrollHeight;
+}
+
+// ── Ensure _2026 suffix ───────────────────────────────────────
+function ensureSchoolSuffix(name) {
+    if (!name) return name;
+    const t = name.trim();
+    return t.endsWith('_2026') ? t : t + '_2026';
+}
+
+// ── Main sync ─────────────────────────────────────────────────
+let _syncing = false;
+
+async function startSync() {
+    if (_syncing) return;
+    if (!navigator.onLine) { alert('You are offline. Connect to internet first.'); return; }
+
+    const pending = getPending();
+    if (pending.length === 0) { refreshStats(); return; }
+
+    _syncing = true;
+    document.getElementById('syncBtn').disabled = true;
+    document.getElementById('syncBtn').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20" style="animation:spin 0.8s linear infinite"><path d="M21 2v6h-6M3 12a9 9 0 0115.36-6.36L21 8M3 22v-6h6M21 12a9 9 0 01-15.36 6.36L3 16"/></svg> SYNCING…';
+    document.getElementById('progWrap').style.display = 'block';
+    document.getElementById('results').style.display = 'none';
+    document.getElementById('syncLog').innerHTML = '';
+
+    const total   = pending.length;
+    const results = [];
+    let synced = 0, duplicates = 0, failed = 0;
+    const remaining = [...pending];
+
+    addLog('Starting sync of ' + total + ' record(s)…', 'info');
+
+    for (let i = 0; i < pending.length; i++) {
+        const rec = {...pending[i]};
+        const school = rec.school_name || rec.school || '—';
+
+        // Apply _2026 suffix
+        if (rec.school_name) rec.school_name = ensureSchoolSuffix(rec.school_name);
+        if (!rec.submission_timestamp) rec.submission_timestamp = rec.timestamp || new Date().toISOString();
+
+        // Update progress
+        const pct = Math.round(((i) / total) * 100);
+        document.getElementById('progFill').style.width = pct + '%';
+        document.getElementById('progPct').textContent = pct + '%';
+        document.getElementById('progLabel').textContent = 'Syncing ' + (i+1) + ' of ' + total;
+        document.getElementById('progDetail').textContent = school;
+
+        try {
+            // 1. First check if already exists on server
+            const dupKey = new URLSearchParams({
+                action:    'checkDuplicate',
+                district:  rec.district  || '',
+                chiefdom:  rec.chiefdom  || '',
+                facility:  rec.facility  || '',
+                community: rec.community || '',
+                school:    rec.school_name || rec.school || ''
+            });
+
+            let isDup = false;
+            try {
+                const dupRes = await Promise.race([
+                    fetch(SCRIPT_URL + '?' + dupKey.toString()),
+                    new Promise((_,rej) => setTimeout(() => rej(new Error('timeout')), 5000))
+                ]);
+                if (dupRes.ok) {
+                    const dupData = await dupRes.json();
+                    isDup = !!dupData.exists;
+                }
+            } catch(e) { /* fail open — proceed with submit */ }
+
+            if (isDup) {
+                addLog('ALREADY SYNCED: ' + school, 'skip');
+                results.push({ school, status: 'duplicate', msg: 'Already on server' });
+                duplicates++;
+                // Remove from remaining since it's already there
+                const idx = remaining.findIndex(r => r === pending[i]);
+                if (idx > -1) remaining.splice(idx, 1);
+                continue;
+            }
+
+            // 2. Submit to server
+            const ctrl = new AbortController();
+            const timer = setTimeout(() => ctrl.abort(), 15000);
+            const res = await fetch(SCRIPT_URL, {
+                method:  'POST',
+                mode:    'cors',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body:    JSON.stringify(rec),
+                signal:  ctrl.signal
+            });
+            clearTimeout(timer);
+
+            const json = await res.json().catch(() => ({ success: true }));
+            if (json.success !== false) {
+                addLog('SYNCED: ' + school, 'ok');
+                results.push({ school, status: 'synced', msg: 'Saved to server ✓' });
+                synced++;
+                // Remove from remaining
+                const idx = remaining.findIndex(r => r === pending[i]);
+                if (idx > -1) remaining.splice(idx, 1);
+            } else {
+                throw new Error(json.error || 'Server rejected');
+            }
+
+        } catch(e) {
+            addLog('FAILED: ' + school + ' — ' + e.message, 'fail');
+            results.push({ school, status: 'failed', msg: e.message });
+            failed++;
+        }
+
+        // Small delay to avoid hammering GAS
+        await new Promise(r => setTimeout(r, 300));
+    }
+
+    // Final progress
+    document.getElementById('progFill').style.width = '100%';
+    document.getElementById('progPct').textContent = '100%';
+    document.getElementById('progLabel').textContent = 'Complete';
+    document.getElementById('progDetail').textContent = synced + ' synced · ' + duplicates + ' already existed · ' + failed + ' failed';
+
+    // Save remaining pending (failed ones stay)
+    savePending(remaining.filter(r => {
+        // Keep failed ones
+        const school = r.school_name || r.school || '';
+        return results.find(x => x.school === school && x.status === 'failed');
+    }));
+
+    // Render results
+    const hdr = document.getElementById('resultHdr');
+    const body = document.getElementById('resultBody');
+    const allGood = failed === 0;
+    const hasFails = failed > 0;
+    hdr.className = 'result-hdr ' + (hasFails ? 'partial' : 'success');
+    hdr.innerHTML = (hasFails ? '⚠️' : '✅') + ' &nbsp;' +
+        synced + ' Synced &nbsp;·&nbsp; ' +
+        duplicates + ' Already Existed &nbsp;·&nbsp; ' +
+        failed + ' Failed';
+
+    body.innerHTML = results.map(function(r) {
+        const badgeClass = r.status === 'synced' ? 'badge-ok' : r.status === 'duplicate' ? 'badge-dup' : 'badge-fail';
+        const badgeText  = r.status === 'synced' ? '✓ SYNCED' : r.status === 'duplicate' ? '↩ ALREADY SYNCED' : '✗ FAILED';
+        return '<div class="result-row">' +
+            '<div style="flex:1;"><div class="result-school">' + r.school + '</div>' +
+            '<div class="result-meta">' + r.msg + '</div></div>' +
+            '<span class="result-badge ' + badgeClass + '">' + badgeText + '</span>' +
+            '</div>';
+    }).join('');
+
+    document.getElementById('results').style.display = 'block';
+
+    // Re-enable button
+    _syncing = false;
+    document.getElementById('syncBtn').disabled = (remaining.length === 0 || !navigator.onLine);
+    document.getElementById('syncBtn').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20"><path d="M21 2v6h-6M3 12a9 9 0 0115.36-6.36L21 8M3 22v-6h6M21 12a9 9 0 01-15.36 6.36L3 16"/></svg> SYNC AGAIN';
+
+    refreshStats();
+    addLog('Done. ' + synced + ' synced, ' + duplicates + ' already existed, ' + failed + ' failed.', 'info');
+}
+
+// Init
+refreshStats();
+window.addEventListener('online',  refreshStats);
+window.addEventListener('offline', refreshStats);
+</script>
+</body>
+</html>
