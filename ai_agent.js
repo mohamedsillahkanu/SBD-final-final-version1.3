@@ -740,50 +740,76 @@
         const body = document.getElementById('targetsBody');
         if (!body) return;
     
-        // Get filtered data (only Old schools from CSV)
-        const oldSchools = (window._SCHOOL_STATUS_DATA || []).filter(r => 
-            (r['School Status'] || '').trim() === 'Old'
-        );
+        // Get all CSV data
+        const allSchools = window._SCHOOL_STATUS_DATA || [];
+        const oldSchools = allSchools.filter(r => (r['School Status'] || '').trim() === 'Old');
+        const newSchools = allSchools.filter(r => (r['School Status'] || '').trim() === 'New');
         
-        if (!oldSchools.length) {
+        // Get current filter from data attribute or default to 'old'
+        let currentFilter = body.getAttribute('data-filter') || 'old';
+        
+        // Get submitted schools from ICF-SL Server
+        const submitted = getSubmittedSet();
+        
+        // Helper to check if a school is submitted (works for both old and new)
+        const isSubmitted = (key) => submitted.has(key);
+        
+        // Function to build tree from a filtered school list
+        function buildTreeFromSchools(schools) {
+            const tree = {};
+            schools.forEach(row => {
+                const d = (row['District'] || '').trim();
+                const c = (row['Chiefdom'] || '').trim();
+                const p = (row['Name of PHU'] || row['Facility'] || '').trim();
+                const com = (row['Community'] || '').trim();
+                const sc = (row['School Name'] || '').trim();
+                const status = (row['School Status'] || '').trim();
+                if (!d || !c || !p || !sc) return;
+                
+                if (!tree[d]) tree[d] = { chiefdoms: {} };
+                if (!tree[d].chiefdoms[c]) tree[d].chiefdoms[c] = { 
+                    name: c,
+                    schools: []
+                };
+                
+                const fullKey = d.toLowerCase()+'|'+c.toLowerCase()+'|'+p.toLowerCase()+'|'+com.toLowerCase()+'|'+sc.toLowerCase();
+                tree[d].chiefdoms[c].schools.push({
+                    name: sc,
+                    phu: p,
+                    community: com,
+                    key: fullKey,
+                    status: status,
+                    submitted: isSubmitted(fullKey)
+                });
+            });
+            return tree;
+        }
+        
+        // Get current data based on filter
+        let activeSchools, tree, filterLabel;
+        if (currentFilter === 'old') {
+            activeSchools = oldSchools;
+            filterLabel = 'OLD SCHOOLS ONLY';
+        } else if (currentFilter === 'new') {
+            activeSchools = newSchools;
+            filterLabel = 'NEW SCHOOLS ONLY';
+        } else {
+            activeSchools = allSchools;
+            filterLabel = 'ALL SCHOOLS';
+        }
+        
+        tree = buildTreeFromSchools(activeSchools);
+        const districts = Object.keys(tree).sort();
+        
+        if (!districts.length) {
             body.innerHTML = `<div class="an-no-data">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
-                <div>No schools with Status='Old' found in CSV. Ensure cascading_data.csv has 'School Status' column with values 'Old' or 'New'.</div>
+                <div>No schools found with Status='${currentFilter.toUpperCase()}'. Check cascading_data.csv for 'School Status' column.</div>
             </div>`;
             return;
         }
-    
-        const submitted = getSubmittedSet();
         
-        // Build tree structure
-        const tree = {};
-        oldSchools.forEach(row => {
-            const d = (row['District'] || '').trim();
-            const c = (row['Chiefdom'] || '').trim();
-            const p = (row['Name of PHU'] || row['Facility'] || '').trim();
-            const com = (row['Community'] || '').trim();
-            const sc = (row['School Name'] || '').trim();
-            if (!d || !c || !p || !sc) return;
-            
-            if (!tree[d]) tree[d] = { chiefdoms: {} };
-            if (!tree[d].chiefdoms[c]) tree[d].chiefdoms[c] = { 
-                name: c,
-                schools: []
-            };
-            
-            const fullKey = d.toLowerCase()+'|'+c.toLowerCase()+'|'+p.toLowerCase()+'|'+com.toLowerCase()+'|'+sc.toLowerCase();
-            tree[d].chiefdoms[c].schools.push({
-                name: sc,
-                phu: p,
-                community: com,
-                key: fullKey,
-                submitted: submitted.has(fullKey)
-            });
-        });
-    
-        const districts = Object.keys(tree).sort();
-        
-        // Calculate totals
+        // Calculate totals for current filter
         let natTotal = 0, natSubmitted = 0;
         districts.forEach(d => {
             Object.keys(tree[d].chiefdoms).forEach(c => {
@@ -792,18 +818,50 @@
             });
         });
         const natPct = natTotal > 0 ? Math.round((natSubmitted / natTotal) * 100) : 0;
-    
-        // Build HTML with proper CSS
+        
+        // Also calculate totals for other statuses to show in cards
+        const oldTotal = oldSchools.length;
+        const oldSubmitted = oldSchools.filter(s => {
+            const d = (s['District'] || '').trim().toLowerCase();
+            const c = (s['Chiefdom'] || '').trim().toLowerCase();
+            const p = (s['Name of PHU'] || s['Facility'] || '').trim().toLowerCase();
+            const com = (s['Community'] || '').trim().toLowerCase();
+            const sc = (s['School Name'] || '').trim().toLowerCase();
+            const key = d+'|'+c+'|'+p+'|'+com+'|'+sc;
+            return submitted.has(key);
+        }).length;
+        const oldPct = oldTotal > 0 ? Math.round((oldSubmitted / oldTotal) * 100) : 0;
+        
+        const newTotal = newSchools.length;
+        const newSubmitted = newSchools.filter(s => {
+            const d = (s['District'] || '').trim().toLowerCase();
+            const c = (s['Chiefdom'] || '').trim().toLowerCase();
+            const p = (s['Name of PHU'] || s['Facility'] || '').trim().toLowerCase();
+            const com = (s['Community'] || '').trim().toLowerCase();
+            const sc = (s['School Name'] || '').trim().toLowerCase();
+            const key = d+'|'+c+'|'+p+'|'+com+'|'+sc;
+            return submitted.has(key);
+        }).length;
+        const newPct = newTotal > 0 ? Math.round((newSubmitted / newTotal) * 100) : 0;
+        
+        // Build HTML
         let html = `
         <style>
-            .tg-kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:18px;}
-            .tg-kpi{background:#fff;border-radius:10px;padding:14px 10px;text-align:center;box-shadow:0 2px 8px rgba(0,64,128,.07);border-top:4px solid #004080;}
-            .tg-kpi.g{border-top-color:#28a745;} .tg-kpi.r{border-top-color:#dc3545;} .tg-kpi.o{border-top-color:#f0a500;}
+            .tg-kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:18px;}
+            .tg-kpi{background:#fff;border-radius:10px;padding:14px 10px;text-align:center;box-shadow:0 2px 8px rgba(0,64,128,.07);border-top:4px solid #004080;cursor:pointer;transition:transform .2s, box-shadow .2s;}
+            .tg-kpi:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,64,128,.15);}
+            .tg-kpi.active{box-shadow:0 0 0 2px #fff, 0 0 0 4px #c8991a;}
+            .tg-kpi.g{border-top-color:#28a745;} .tg-kpi.r{border-top-color:#dc3545;} .tg-kpi.o{border-top-color:#f0a500;} .tg-kpi.b{border-top-color:#004080;}
             .tg-kv{font-family:'Oswald',sans-serif;font-size:28px;font-weight:700;color:#004080;line-height:1;}
             .tg-kpi.g .tg-kv{color:#28a745;} .tg-kpi.r .tg-kv{color:#dc3545;} .tg-kpi.o .tg-kv{color:#b8860b;}
             .tg-kl{font-size:10px;color:#607080;text-transform:uppercase;letter-spacing:.5px;margin-top:5px;font-family:'Oswald',sans-serif;}
             .tg-nat-bar{height:14px;background:#e4eaf2;border-radius:7px;overflow:hidden;margin:10px 0 18px;}
-            .tg-nat-fill{height:100%;border-radius:7px;transition:width .5s;background:linear-gradient(90deg,#004080,#1a6abf);}
+            .tg-nat-fill{height:100%;border-radius:7px;transition:width .5s;}
+            
+            .tg-filter-bar{display:flex;gap:12px;margin-bottom:20px;padding:8px 12px;background:#f0f6ff;border-radius:12px;flex-wrap:wrap;}
+            .tg-filter-btn{background:#fff;border:2px solid #c5d9f0;border-radius:30px;padding:8px 20px;font-family:'Oswald',sans-serif;font-size:11px;font-weight:600;letter-spacing:.5px;color:#004080;cursor:pointer;transition:all .2s;}
+            .tg-filter-btn.active{background:#004080;border-color:#004080;color:#fff;}
+            .tg-filter-btn:hover{background:#c5d9f0;}
             
             .tg-dist{background:#fff;border-radius:12px;box-shadow:0 2px 10px rgba(0,64,128,.08);overflow:hidden;margin-bottom:14px;border:2px solid #d0dce8;}
             .tg-dist-hdr{background:linear-gradient(135deg,#004080,#1a6abf);color:#fff;padding:12px 16px;display:flex;align-items:center;gap:10px;cursor:pointer;}
@@ -822,28 +880,61 @@
             .tg-prog-cell{display:flex;align-items:center;gap:8px;}
             .tg-prog-bar{background:#e4eaf2;border-radius:4px;height:8px;flex:1;overflow:hidden;min-width:60px;}
             .tg-prog-fill{height:100%;border-radius:4px;}
-            .tg-school-chips{display:flex;flex-wrap:wrap;gap:4px;max-width:400px;}
+            .tg-school-chips{display:flex;flex-wrap:wrap;gap:4px;max-width:450px;}
             .tg-chip{display:inline-block;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:600;white-space:nowrap;}
             .tg-chip.done{background:#e8f5e9;color:#28a745;border:1px solid #b2dfcc;}
             .tg-chip.pend{background:#fff8e1;color:#b8860b;border:1px solid #ffe082;}
+            .tg-chip.done-new{background:#e3f2fd;color:#1565c0;border:1px solid #90caf9;}
+            .tg-chip.pend-new{background:#e8eaf6;color:#3949ab;border:1px solid #c5cae9;}
             .tg-phu-row{background:#f8fbff;}
             .tg-phu-label{background:#e8f1fb;color:#004080;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;margin-right:8px;}
+            .tg-status-badge{display:inline-block;padding:2px 6px;border-radius:4px;font-size:9px;font-weight:700;margin-left:6px;}
+            .tg-status-badge.old{background:#e0e0e0;color:#616161;}
+            .tg-status-badge.new{background:#e3f2fd;color:#1565c0;}
         </style>
     
+        <!-- Filter Bar -->
+        <div class="tg-filter-bar">
+            <button class="tg-filter-btn ${currentFilter === 'old' ? 'active' : ''}" onclick="setTargetsFilter('old')">🏛️ OLD SCHOOLS ONLY</button>
+            <button class="tg-filter-btn ${currentFilter === 'new' ? 'active' : ''}" onclick="setTargetsFilter('new')">🆕 NEW SCHOOLS ONLY</button>
+            <button class="tg-filter-btn ${currentFilter === 'all' ? 'active' : ''}" onclick="setTargetsFilter('all')">📋 ALL SCHOOLS</button>
+        </div>
+    
+        <!-- Summary Cards -->
         <div class="tg-kpi-row">
-            <div class="tg-kpi b"><div class="tg-kv">${districts.length}</div><div class="tg-kl">Districts</div></div>
-            <div class="tg-kpi b"><div class="tg-kv">${natTotal.toLocaleString()}</div><div class="tg-kl">Target Schools (Old)</div></div>
-            <div class="tg-kpi g"><div class="tg-kv">${natSubmitted.toLocaleString()}</div><div class="tg-kl">Submitted</div></div>
-            <div class="tg-kpi r"><div class="tg-kv">${(natTotal - natSubmitted).toLocaleString()}</div><div class="tg-kl">Remaining</div></div>
-            <div class="tg-kpi ${natPct>=80?'g':natPct>=50?'o':'r'}"><div class="tg-kv">${natPct}%</div><div class="tg-kl">Progress</div></div>
+            <div class="tg-kpi b" onclick="setTargetsFilter('old')">
+                <div class="tg-kv">${oldTotal.toLocaleString()}</div>
+                <div class="tg-kl">Old Schools</div>
+                <div style="font-size:10px;margin-top:4px;">${oldSubmitted} submitted · ${oldPct}%</div>
+            </div>
+            <div class="tg-kpi" style="border-top-color:#1565c0;" onclick="setTargetsFilter('new')">
+                <div class="tg-kv" style="color:#1565c0;">${newTotal.toLocaleString()}</div>
+                <div class="tg-kl">New Schools</div>
+                <div style="font-size:10px;margin-top:4px;">${newSubmitted} submitted · ${newPct}%</div>
+            </div>
+            <div class="tg-kpi b" onclick="setTargetsFilter('all')">
+                <div class="tg-kv">${(oldTotal+newTotal).toLocaleString()}</div>
+                <div class="tg-kl">Total Target</div>
+                <div style="font-size:10px;margin-top:4px;">${(oldSubmitted+newSubmitted)} submitted</div>
+            </div>
+            <div class="tg-kpi g">
+                <div class="tg-kv">${natSubmitted.toLocaleString()}</div>
+                <div class="tg-kl">Submitted (Filtered)</div>
+            </div>
+            <div class="tg-kpi ${natPct>=80?'g':natPct>=50?'o':'r'}">
+                <div class="tg-kv">${natPct}%</div>
+                <div class="tg-kl">Progress</div>
+            </div>
         </div>
     
         <div style="margin-bottom:20px;">
             <div style="display:flex;justify-content:space-between;font-family:'Oswald',sans-serif;font-size:11px;color:#607080;margin-bottom:5px;">
-                <span>NATIONAL PROGRESS (OLD SCHOOLS ONLY)</span>
+                <span>${filterLabel} — PROGRESS</span>
                 <span style="font-weight:700;color:${natPct>=80?'#28a745':natPct>=50?'#b8860b':'#dc3545'}">${natSubmitted} / ${natTotal} schools (${natPct}%)</span>
             </div>
-            <div class="tg-nat-bar"><div class="tg-nat-fill" style="width:${natPct}%;background:${natPct>=80?'#28a745':natPct>=50?'#f0a500':'#dc3545'};"></div></div>
+            <div class="tg-nat-bar">
+                <div class="tg-nat-fill" style="width:${natPct}%;background:${natPct>=80?'#28a745':natPct>=50?'#f0a500':'#dc3545'};"></div>
+            </div>
         </div>`;
     
         // Build district sections
@@ -914,7 +1005,26 @@
                     const pCol = pPct >= 80 ? '#28a745' : pPct >= 50 ? '#f0a500' : '#dc3545';
                     
                     const schoolChips = pSchools.map(s => {
-                        return `<span class="tg-chip ${s.submitted ? 'done' : 'pend'}" title="${s.community} - ${s.name}">${s.submitted ? '✓ ' : '○ '}${s.name.length > 25 ? s.name.substring(0,22)+'…' : s.name}</span>`;
+                        // Determine chip style based on status and submission
+                        let chipClass, chipIcon;
+                        if (s.status === 'New') {
+                            if (s.submitted) {
+                                chipClass = 'done-new';
+                                chipIcon = '✓';
+                            } else {
+                                chipClass = 'pend-new';
+                                chipIcon = '○';
+                            }
+                        } else {
+                            if (s.submitted) {
+                                chipClass = 'done';
+                                chipIcon = '✓';
+                            } else {
+                                chipClass = 'pend';
+                                chipIcon = '○';
+                            }
+                        }
+                        return `<span class="tg-chip ${chipClass}" title="${s.community} - ${s.name} (${s.status})">${chipIcon} ${s.name.length > 25 ? s.name.substring(0,22)+'…' : s.name}</span>`;
                     }).join('');
                     
                     html += `<tr class="tg-phu-row">
@@ -944,9 +1054,16 @@
         });
     
         body.innerHTML = html;
-    
     }
-
+    
+    // Filter setter function
+    window.setTargetsFilter = function(filter) {
+        const body = document.getElementById('targetsBody');
+        if (body) {
+            body.setAttribute('data-filter', filter);
+            renderTargetsTab();
+        }
+    };
     // ════════════════════════════════════════════════════════
     //  OPEN/CLOSE ANALYSIS with CSV loading
     // ════════════════════════════════════════════════════════
