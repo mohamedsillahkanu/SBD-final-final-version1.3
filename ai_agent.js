@@ -767,18 +767,17 @@
 
         const statusFilter = document.getElementById('targetStatusFilter')?.value || 'all';
         
-        // FIXED: Read from GAS field 'school_status' which comes from CSV column 'School Status'
+        // Get status from the school object (now directly available)
         function getSchoolStatus(school) {
-            // Priority: GAS returns 'school_status' field
-            // The CSV column 'School Status' gets mapped to 'school_status' by GAS
-            const status = school.school_status || school['School Status'] || school.status || school['Status'] || 'Old';
+            // School object now has .status property from buildTargetsTree
+            const status = school.status || school.school_status || 'Old';
             return String(status).trim().toLowerCase();
         }
         
         function filterByStatus(school) {
             const schoolStatus = getSchoolStatus(school);
-            if (statusFilter === 'old') return schoolStatus === 'old' || schoolStatus === 'yes';
-            if (statusFilter === 'new') return schoolStatus === 'new' || schoolStatus === 'no';
+            if (statusFilter === 'old') return schoolStatus === 'old';
+            if (statusFilter === 'new') return schoolStatus === 'new';
             return true; // 'all'
         }
 
@@ -796,38 +795,29 @@
         let oldSchools = 0, oldDone = 0;
         let newSchools = 0, newDone = 0;
         
-        // Debug: Log first school to see what status we get
-        if (districts.length > 0) {
-            const firstDistrict = districts[0];
-            const firstChiefdom = Object.keys(tree[firstDistrict].chiefdoms)[0];
-            if (firstChiefdom && tree[firstDistrict].chiefdoms[firstChiefdom].schools[0]) {
-                const sampleSchool = tree[firstDistrict].chiefdoms[firstChiefdom].schools[0];
-                console.log('[Targets] Sample school status:', {
-                    name: sampleSchool.name,
-                    'school_status': sampleSchool.school_status,
-                    'School Status': sampleSchool['School Status'],
-                    status: sampleSchool.status,
-                    raw: sampleSchool
-                });
-            }
-        }
-        
         districts.forEach(d => {
             Object.values(tree[d].chiefdoms).forEach(c => {
                 const allSchools = c.schools;
+                
+                // Log first few schools to debug
+                if (oldSchools === 0 && newSchools === 0) {
+                    console.log('[Targets] First 3 schools in', d, ':', 
+                        allSchools.slice(0,3).map(s => ({ name: s.name, status: s.status })));
+                }
+                
                 const filteredSchools = allSchools.filter(filterByStatus);
                 
                 natSchools += filteredSchools.length;
                 natDone += filteredSchools.filter(s => submitted.has(s.key)).length;
                 
-                // Count Old vs New based on 'school_status' field
+                // Count Old vs New based on status property
                 const oldOnes = allSchools.filter(s => {
                     const status = getSchoolStatus(s);
-                    return status === 'old' || status === 'yes';
+                    return status === 'old';
                 });
                 const newOnes = allSchools.filter(s => {
                     const status = getSchoolStatus(s);
-                    return status === 'new' || status === 'no';
+                    return status === 'new';
                 });
                 
                 oldSchools += oldOnes.length;
@@ -841,10 +831,12 @@
         const oldPct = oldSchools > 0 ? Math.round((oldDone / oldSchools) * 100) : 0;
         const newPct = newSchools > 0 ? Math.round((newDone / newSchools) * 100) : 0;
 
-        console.log('[Targets] Status counts:', {
-            oldSchools, oldDone, oldPct,
-            newSchools, newDone, newPct,
-            natSchools, natDone, natPct
+        console.log('[Targets] Final counts:', {
+            oldSchools, oldDone, oldPct: oldPct + '%',
+            newSchools, newDone, newPct: newPct + '%',
+            totalSchools: natSchools,
+            totalSubmitted: natDone,
+            overallPct: natPct + '%'
         });
 
         let html = sheetBanner + `
@@ -995,7 +987,7 @@
 
                 html += `
                     <tr style="background:#f0f4f8;">
-                        <td style="color:#8090a0;font-size:11px;font-weight:700;">${ci+1}<tr>
+                        <td style="color:#8090a0;font-size:11px;font-weight:700;">${ci+1}</td>
                         <td style="font-weight:700;color:#004080;white-space:nowrap;">
                             📍 ${chiefdom}
                             <span style="font-size:10px;color:#607080;font-weight:400;margin-left:6px;">${phuKeys.length} PHU${phuKeys.length!==1?'s':''}</span>
@@ -1020,10 +1012,10 @@
                     const pCol = pPct >= 80 ? '#28a745' : pPct >= 50 ? '#f0a500' : '#dc3545';
                     const pChips = pSchs.map(s => {
                         const done = submitted.has(s.key);
-                        const schoolStatus = getSchoolStatus(s);
-                        const statusLabel = schoolStatus === 'new' ? ' 🆕' : '';
+                        const isNew = getSchoolStatus(s) === 'new';
+                        const statusLabel = isNew ? ' 🆕' : '';
                         const lbl = s.name.length > 20 ? s.name.substring(0, 18) + '…' : s.name;
-                        return `<span class="tg-chip ${done ? 'done' : 'pend'}" title="${s.name} · ${s.community}${statusLabel}">${done ? '✓ ' : ''}${lbl}${statusLabel}</span>`;
+                        return `<span class="tg-chip ${done ? 'done' : 'pend'} ${isNew ? 'new-school' : ''}" title="${s.name} · ${s.community}${statusLabel}">${done ? '✓ ' : ''}${lbl}${statusLabel}</span>`;
                     }).join('');
 
                     html += `
